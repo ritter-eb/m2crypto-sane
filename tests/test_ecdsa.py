@@ -33,17 +33,17 @@ class ECDSATestCase(unittest.TestCase):
 
     def test_loadkey(self):
         ec = EC.load_key(self.privkey)
-        self.assertEqual(len(ec), 233)
+        self.assertEqual(len(ec), 256)
 
     def test_loadpubkey(self):
         # XXX more work needed
         ec = EC.load_pub_key(self.pubkey)
-        self.assertEqual(len(ec), 233)
+        self.assertEqual(len(ec), 256)
         with self.assertRaises(EC.ECError):
             EC.load_pub_key(self.errkey)
 
     def _test_sign_dsa(self):
-        ec = EC.gen_params(EC.NID_sect233k1)
+        ec = EC.gen_params(EC.NID_X9_62_prime256v1)
         # ec.gen_key()
         with self.assertRaises(EC.ECError):
             ec.sign_dsa(self.data)
@@ -67,8 +67,8 @@ class ECDSATestCase(unittest.TestCase):
         assert not ec2.verify_dsa(self.data, s, r)
 
     def test_genparam(self):
-        ec = EC.gen_params(EC.NID_sect233k1)
-        self.assertEqual(len(ec), 233)
+        ec = EC.gen_params(EC.NID_X9_62_prime256v1)
+        self.assertEqual(len(ec), 256)
 
     def test_pub_key_from_params(self):
         curve = EC.NID_X9_62_prime256v1
