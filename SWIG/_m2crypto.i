@@ -18,6 +18,7 @@
 %{
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/conf.h>
 #include <_lib.h>
 
 #include "compile.h"
@@ -27,6 +28,10 @@ static PyObject *ssl_info_cb_func;
 static PyObject *ssl_set_tmp_dh_cb_func;
 static PyObject *ssl_set_tmp_rsa_cb_func;
 %}
+
+/* Maintenance functions */
+%rename (openssl_conf) OPENSSL_config;
+extern void OPENSSL_config(const char *config_name=NULL);
 
 %include <openssl/opensslv.h>
 #if OPENSSL_VERSION_NUMBER >= 0x0090707fL

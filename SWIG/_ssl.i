@@ -133,6 +133,8 @@ extern int SSL_do_handshake(SSL *);
 extern int SSL_renegotiate(SSL *);
 %rename(ssl_pending) SSL_pending;
 extern int SSL_pending(CONST SSL *);
+%rename (ssl_library_init) SSL_library_init;
+int SSL_library_init(void);
 
 %rename(ssl_get_peer_cert) SSL_get_peer_certificate;
 extern X509 *SSL_get_peer_certificate(CONST SSL *);
