@@ -20,7 +20,7 @@ Others:
 - ThreadingSSLServer
 """
 
-import os, socket, string, sys, tempfile, thread, time, unittest
+import os, signal, socket, string, sys, tempfile, thread, time, unittest
 from M2Crypto import Rand, SSL, m2, Err
 
 from fips import fips_mode
@@ -95,7 +95,7 @@ class BaseSSLClientTestCase(unittest.TestCase):
             return pid
 
     def stop_server(self, pid):
-        os.kill(pid, 1)
+        os.kill(pid, signal.SIGTERM)
         os.waitpid(pid, 0)
 
     def http_get(self, s):
@@ -1039,7 +1039,7 @@ class TwistedSSLClientTestCase(BaseSSLClientTestCase):
             finally:
                 self.stop_server(pid)
         finally:
-            os.kill(pipe_pid, 1)
+            os.kill(pipe_pid, signal.SIGTERM)
             os.waitpid(pipe_pid, 0)
             os.unlink('tests/' + FIFO_NAME)
 
@@ -1154,7 +1154,7 @@ def zap_servers():
         chunk = string.split(ps)
         pid, cmd = chunk[0], chunk[4]
         if cmd == s:
-            os.kill(int(pid), 1)
+            os.kill(int(pid), signal.SIGTERM)
     f.close()
     os.unlink(fn)
 
