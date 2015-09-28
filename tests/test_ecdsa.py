@@ -29,16 +29,16 @@ class ECDSATestCase(unittest.TestCase):
 
     def test_loadkey(self):
         ec = EC.load_key(self.privkey)
-        assert len(ec) == 233
+        assert len(ec) == 256
 
     def test_loadpubkey(self):
         # XXX more work needed
         ec = EC.load_pub_key(self.pubkey)
-        assert len(ec) == 233
+        assert len(ec) == 256
         self.assertRaises(EC.ECError, EC.load_pub_key, self.errkey)
 
     def _test_sign_dsa(self):
-        ec = EC.gen_params(EC.NID_sect233k1)
+        ec = EC.gen_params(EC.NID_X9_62_prime256v1)
         # ec.gen_key()
         self.assertRaises(EC.ECError, ec.sign_dsa, self.data)
         ec = EC.load_key(self.privkey)
@@ -60,8 +60,8 @@ class ECDSATestCase(unittest.TestCase):
         assert not ec2.verify_dsa(self.data, s, r)
         
     def test_genparam(self):
-        ec = EC.gen_params(EC.NID_sect233k1)
-        assert len(ec) == 233
+        ec = EC.gen_params(EC.NID_X9_62_prime256v1)
+        assert len(ec) == 256
 
 
 def suite():

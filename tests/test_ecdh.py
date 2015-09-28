@@ -20,16 +20,16 @@ class ECDHTestCase(unittest.TestCase):
 
     def test_compute_key(self):
         a = EC.load_key(self.privkey)
-        b = EC.gen_params(EC.NID_sect233k1)
+        b = EC.gen_params(EC.NID_X9_62_prime256v1)
         b.gen_key()
         ak = a.compute_dh_key(b.pub())
         bk = b.compute_dh_key(a.pub())
         assert ak == bk
 
     def test_pubkey_from_der(self):
-        a = EC.gen_params(EC.NID_sect233k1)
+        a = EC.gen_params(EC.NID_X9_62_prime256v1)
         a.gen_key()
-        b = EC.gen_params(EC.NID_sect233k1)
+        b = EC.gen_params(EC.NID_X9_62_prime256v1)
         b.gen_key()
         a_pub_der = a.pub().get_der()
         a_pub = EC.pub_key_from_der(a_pub_der)
