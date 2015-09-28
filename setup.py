@@ -20,6 +20,7 @@ except ImportError:
     from distutils.command import build_ext
 
 from distutils.core import Extension
+from distutils.file_util import copy_file
 
 
 class _M2CryptoBuildExt(build_ext.build_ext):
@@ -57,7 +58,17 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         self.swig_opts.append('-includeall')
         #self.swig_opts.append('-D__i386__') # Uncomment for early OpenSSL 0.9.7 versions, or on Fedora Core if build fails
         #self.swig_opts.append('-DOPENSSL_NO_EC') # Try uncommenting if you can't build with EC disabled
-        
+        self.swig_opts.append('-modern')
+        self.swig_opts.append('-builtin')
+
+        # These two lines are a workaround for
+        # http://bugs.python.org/issue2624 , hard-coding that we are only
+        # building a single extension with a known path; a proper patch to
+        # distutils would be in the run phase, when extension name and path are
+        # known.
+        self.swig_opts.append('-outdir')
+        self.swig_opts.append(os.path.join(self.build_lib, 'M2Crypto'))
+
         self.include_dirs += [os.path.join(self.openssl, opensslIncludeDir),
                               os.path.join(os.getcwd(), 'SWIG')]        
             
@@ -71,6 +82,19 @@ class _M2CryptoBuildExt(build_ext.build_ext):
                
         self.library_dirs += [os.path.join(self.openssl, opensslLibraryDir)]
 
+    def run(self):
+        '''Overloaded build_ext implementation to allow inplace=1 to work,
+        which is needed for (python setup.py test).'''
+        # This is another workaround for http://bugs.python.org/issue2624 + the
+        # corresponding lack of support in setuptools' test command. Note that
+        # just using self.inplace in finalize_options() above does not work
+        # because swig is not rerun if the __m2crypto.so extension exists.
+        # Again, hard-coding our extension name and location.
+        build_ext.build_ext.run(self)
+        if self.inplace:
+            copy_file(os.path.join(self.build_lib, 'M2Crypto', '_m2crypto.py'),
+                      os.path.join('M2Crypto', '_m2crypto.py'),
+                      verbose=self.verbose, dry_run=self.dry_run)
 
 if sys.version_info < (2,4):
 
