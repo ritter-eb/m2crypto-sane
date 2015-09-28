@@ -463,6 +463,7 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
         finally:
             self.stop_server(pid)
 
+    @unittest.skip("Export ciphers are prohibited in recent Fedora releases")
     def test_use_weak_cipher(self):
         if fips_mode: # Weak ciphers are prohibited
             return
