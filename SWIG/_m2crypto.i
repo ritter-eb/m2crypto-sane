@@ -7,6 +7,7 @@
  * Copyright (c) 2009-2010 Heikki Toivonen. All rights reserved.
  *
  */
+%import "gcc_macros.h"
 
 %module(threads=1) _m2crypto
 /* We really don't need threadblock (PyGILState_Ensure() etc.) anywhere.
