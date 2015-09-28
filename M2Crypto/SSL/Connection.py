@@ -37,22 +37,23 @@ class Connection:
 
     m2_bio_free = m2.bio_free
     m2_ssl_free = m2.ssl_free
-    
+
     def __init__(self, ctx, sock=None):
         self.ctx = ctx
         self.ssl = m2.ssl_new(self.ctx.ctx)
-        if sock is not None:    
+        if sock is not None:
             self.socket = sock
         else:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._fileno = self.socket.fileno()
-        
-        self.blocking = self.socket.gettimeout()
-        
+
+        self._timeout = self.socket.gettimeout()
+        if self._timeout is None:
+            self._timeout = -1.0
+
         self.ssl_close_flag = m2.bio_noclose
 
-        
     def __del__(self):
         if getattr(self, 'sslbio', None):
             self.m2_bio_free(self.sslbio)
@@ -83,7 +84,7 @@ class Connection:
         self.socket.bind(addr)
 
     def listen(self, qlen=5):
-        self.socket.listen(qlen)    
+        self.socket.listen(qlen)
 
     def ssl_get_error(self, ret):
         return m2.ssl_get_error(self.ssl, ret)
@@ -93,15 +94,15 @@ class Connection:
         Explicitly set read and write bios
         """
         m2.ssl_set_bio(self.ssl, readbio._ptr(), writebio._ptr())
-        
+
     def set_client_CA_list_from_file(self, cafile):
         """
         Set the acceptable client CA list. If the client
         returns a certificate, it must have been issued by
         one of the CAs listed in cafile.
-        
+
         Makes sense only for servers.
-        
+
         @param cafile: Filename from which to load the CA list.
         """
         m2.ssl_set_client_CA_list_from_file(self.ssl, cafile)
@@ -111,7 +112,7 @@ class Connection:
         Set the acceptable client CA list. If the client
         returns a certificate, it must have been issued by
         one of the CAs listed in context.
-        
+
         Makes sense only for servers.
         """
         m2.ssl_set_client_CA_list_from_context(self.ssl, self.ctx.ctx)
@@ -147,7 +148,7 @@ class Connection:
         m2.ssl_set_accept_state(self.ssl)
 
     def accept_ssl(self):
-        return m2.ssl_accept(self.ssl)
+        return m2.ssl_accept(self.ssl, self._timeout)
 
     def accept(self):
         """Accept an SSL connection. The return value is a pair (ssl, addr) where
@@ -169,7 +170,7 @@ class Connection:
         m2.ssl_set_connect_state(self.ssl)
 
     def connect_ssl(self):
-        return m2.ssl_connect(self.ssl)
+        return m2.ssl_connect(self.ssl, self._timeout)
 
     def connect(self, addr):
         self.socket.connect(addr)
@@ -191,12 +192,12 @@ class Connection:
         return m2.ssl_renegotiate(self.ssl)
 
     def pending(self):
-        """Return the numbers of octets that can be read from the 
+        """Return the numbers of octets that can be read from the
         connection."""
         return m2.ssl_pending(self.ssl)
 
     def _write_bio(self, data):
-        return m2.ssl_write(self.ssl, data)
+        return m2.ssl_write(self.ssl, data, self._timeout)
 
     def _write_nbio(self, data):
         return m2.ssl_write_nbio(self.ssl, data)
@@ -204,7 +205,7 @@ class Connection:
     def _read_bio(self, size=1024):
         if size <= 0:
             raise ValueError, 'size <= 0'
-        return m2.ssl_read(self.ssl, size)
+        return m2.ssl_read(self.ssl, size, self._timeout)
 
     def _read_nbio(self, size=1024):
         if size <= 0:
@@ -212,13 +213,13 @@ class Connection:
         return m2.ssl_read_nbio(self.ssl, size)
 
     def write(self, data):
-        if self.blocking:
+        if self._timeout != 0.0:
             return self._write_bio(data)
         return self._write_nbio(data)
     sendall = send = write
-    
+
     def read(self, size=1024):
-        if self.blocking:
+        if self._timeout != 0.0:
             return self._read_bio(size)
         return self._read_nbio(size)
     recv = read
@@ -226,7 +227,17 @@ class Connection:
     def setblocking(self, mode):
         """Set this connection's underlying socket to _mode_."""
         self.socket.setblocking(mode)
-        self.blocking = mode
+        if mode:
+            self._timeout = -1.0
+        else:
+            self._timeout = 0.0
+
+    def settimeout(self, timeout):
+        """Set this connection's underlying socket's timeout to _timeout_."""
+        self.socket.settimeout(timeout)
+        self._timeout = timeout
+        if self._timeout is None:
+            self._timeout = -1.0
 
     def fileno(self):
         return self.socket.fileno()
@@ -238,7 +249,7 @@ class Connection:
         return apply(self.socket.setsockopt, args)
 
     def get_context(self):
-        """Return the SSL.Context object associated with this 
+        """Return the SSL.Context object associated with this
         connection."""
         return m2.ssl_get_ssl_ctx(self.ssl)
 
@@ -262,18 +273,18 @@ class Connection:
         return m2.ssl_get_verify_result(self.ssl)
 
     def get_peer_cert(self):
-        """Return the peer certificate; if the peer did not provide 
+        """Return the peer certificate; if the peer did not provide
         a certificate, return None."""
         c=m2.ssl_get_peer_cert(self.ssl)
         if c is None:
             return None
         # Need to free the pointer coz OpenSSL doesn't.
         return X509.X509(c, 1)
-    
+
     def get_peer_cert_chain(self):
-        """Return the peer certificate chain; if the peer did not provide 
+        """Return the peer certificate chain; if the peer did not provide
         a certificate chain, return None.
-        
+
         @warning: The returned chain will be valid only for as long as the
         connection object is alive. Once the connection object gets freed,
         the chain will be freed as well.
@@ -283,15 +294,15 @@ class Connection:
             return None
         # No need to free the pointer coz OpenSSL does.
         return X509.X509_Stack(c)
-    
+
     def get_cipher(self):
-        """Return an M2Crypto.SSL.Cipher object for this connection; if the 
+        """Return an M2Crypto.SSL.Cipher object for this connection; if the
         connection has not been initialised with a cipher suite, return None."""
         c=m2.ssl_get_current_cipher(self.ssl)
         if c is None:
             return None
         return Cipher(c)
-    
+
     def get_ciphers(self):
         """Return an M2Crypto.SSL.Cipher_Stack object for this connection; if the
         connection has not been initialised with cipher suites, return None."""
@@ -308,15 +319,8 @@ class Connection:
         """Set the cipher suites for this connection."""
         return m2.ssl_set_cipher_list(self.ssl, cipher_list)
 
-    def makefile(self, mode='rb', bufsize='ignored'):
-        r = 'r' in mode or '+' in mode
-        w = 'w' in mode or 'a' in mode or '+' in mode
-        b = 'b' in mode
-        m2mode = ['', 'r'][r] + ['', 'w'][w] + ['', 'b'][b]      
-        # XXX Need to dup().
-        bio = BIO.BIO(self.sslbio, _close_cb=self.close)
-        m2.bio_do_handshake(bio._ptr())
-        return BIO.IOBuffer(bio, m2mode, _pyfree=0)
+    def makefile(self, mode='rb', bufsize=-1):
+        return socket._fileobject(self, mode, bufsize)
 
     def getsockname(self):
         return self.socket.getsockname()
