@@ -1,4 +1,6 @@
 include SWIG/*.i
 include SWIG/*.h
 include SWIG/*.def
+recursive-include tests
+include fedora-setup.sh
 exclude M2Crypto/_m2crypto.py
