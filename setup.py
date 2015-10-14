@@ -58,6 +58,10 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         openssl_include_dir = os.path.join(self.openssl, 'include')
         openssl_library_dir = os.path.join(self.openssl, 'lib')
 
+        if (platform.linux_distribution()[0] in ['Ubuntu', 'Debian'] and 
+                platform.architecture()[0] == '64bit'):
+            self.include_dirs.append(os.path.join(openssl_include_dir, 'x86_64-linux-gnu'))
+
         self.swig_opts = ['-I%s' % i for i in self.include_dirs +
                           [openssl_include_dir]]
         self.swig_opts.append('-includeall')
