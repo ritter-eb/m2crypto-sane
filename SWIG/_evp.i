@@ -253,10 +253,15 @@ PyObject *hmac_init(HMAC_CTX *ctx, PyObject *key, const EVP_MD *md) {
     if (m2_PyObject_AsReadBufferInt(key, &kbuf, &klen) == -1)
         return NULL;
 
+    #if OPENSSL_VERSION_NUMBER >= 0x10000000L
     if (!HMAC_Init(ctx, kbuf, klen, md)) {
         PyErr_SetString(_evp_err, "HMAC_Init failed");
         return NULL;
     }
+    #else
+    HMAC_Init(ctx, kbuf, klen, md);
+    #endif
+
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -268,10 +273,15 @@ PyObject *hmac_update(HMAC_CTX *ctx, PyObject *blob) {
     if (PyObject_AsReadBuffer(blob, &buf, &len) == -1)
         return NULL;
 
+    #if OPENSSL_VERSION_NUMBER >= 0x10000000L
     if (!HMAC_Update(ctx, buf, len)) {
         PyErr_SetString(_evp_err, "HMAC_Update failed");
         return NULL;
     }
+    #else
+    HMAC_Update(ctx, buf, len);
+    #endif
+
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -285,10 +295,14 @@ PyObject *hmac_final(HMAC_CTX *ctx) {
         PyErr_SetString(PyExc_MemoryError, "hmac_final");
         return NULL;
     }
+    #if OPENSSL_VERSION_NUMBER >= 0x10000000L
     if (!HMAC_Final(ctx, blob, (unsigned int *)&blen)) {
         PyErr_SetString(_evp_err, "HMAC_Final failed");
         return NULL;
     }
+    #else
+    HMAC_Final(ctx, blob, (unsigned int *)&blen);
+    #endif
     ret = PyString_FromStringAndSize(blob, blen);
     PyMem_Free(blob);
     return ret;
