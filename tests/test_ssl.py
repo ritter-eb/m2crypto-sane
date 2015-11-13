@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 """Unit tests for M2Crypto.SSL.
 
 Copyright (c) 2000-2004 Ng Pheng Siong. All rights reserved.
