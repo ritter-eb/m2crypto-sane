@@ -10,6 +10,9 @@
 # FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
+
+from __future__ import print_function
+
 """Zope 2 ZServer start-up file
 
 Usage: %(program)s [options] [environment settings]
@@ -256,7 +259,6 @@ Environment settings are of the form: NAME=VALUE.
 
 Note: you *must* use Python 2.1 or later!
 """
-
 
 # This is required path hackery for the win32 binary distribution
 # that ensures that the bundled python libraries are used. In a
@@ -511,7 +513,7 @@ try:
             if v=='-': v=''
             PCGI_FILE=v
         elif o=='-h':
-            print __doc__ % vars()
+            print(__doc__ % vars())
             sys.exit(0)
         elif o=='-2': MODULE='Main'
         elif o=='-l': LOG_FILE=v
@@ -525,10 +527,10 @@ try:
 
 except SystemExit: sys.exit(0)
 except:
-    print __doc__ % vars()
-    print
-    print 'Error:'
-    print "%s: %s" % (sys.exc_type, sys.exc_value)
+    print(__doc__ % vars())
+    print()
+    print('Error:')
+    print("%s: %s" % (sys.exc_type, sys.exc_value))
     sys.exit(1)
 
 #
@@ -1006,7 +1008,7 @@ try:
             import stat
             client_home_stat = os.stat(CLIENT_HOME)
             client_home_faults = []
-            if not (client_home_stat[stat.ST_MODE]&01000):
+            if not (client_home_stat[stat.ST_MODE]&0o1000):
                 client_home_faults.append('does not have the sticky bit set')
             if client_home_stat[stat.ST_UID] != 0:
                 client_home_faults.append('is not owned by root')
@@ -1053,7 +1055,7 @@ try:
         # umask is silly, blame POSIX.  We have to set it to get its value.
         current_umask = os.umask(0)
         os.umask(current_umask)
-        if current_umask != 077:
+        if current_umask != 0o77:
             current_umask = '%03o' % current_umask
             zLOG.LOG("z2", zLOG.INFO, (
                 'Your umask of %s may be too permissive; for the security of '
