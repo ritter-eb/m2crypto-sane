@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 """M2Crypto wrapper for OpenSSL X509 API.
 
 Copyright (c) 1999-2004 Ng Pheng Siong. All rights reserved.
@@ -8,9 +10,9 @@ Author: Heikki Toivonen
 """
 
 # M2Crypto
-from M2Crypto import ASN1, BIO, Err, EVP, util
-import m2
 import binascii
+from M2Crypto import ASN1, BIO, Err, EVP, util
+from . import m2
 
 FORMAT_DER = 0
 FORMAT_PEM = 1
