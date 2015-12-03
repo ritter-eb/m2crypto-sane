@@ -93,6 +93,12 @@ class Cert:
         self.X509Certificate.set_version ( 0 )
 
         #
+        # serial_number
+        #
+
+        self.X509Certificate.set_serial_number ( 1 )
+
+        #
         # time notBefore
         #
 
