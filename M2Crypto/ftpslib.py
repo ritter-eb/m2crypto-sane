@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 """M2Crypto client-side FTP/TLS.
 
 This implementation complies with draft-murray-auth-ftp-ssl-07.txt.
@@ -38,7 +40,7 @@ from ftplib import error_reply, error_temp, error_perm, error_proto
 import socket, time
 
 # M2Crypto
-import SSL
+from . import SSL
 
 DEFAULT_PROTOCOL = 'sslv23'
 

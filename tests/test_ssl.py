@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 """Unit tests for M2Crypto.SSL.
 
@@ -34,7 +34,7 @@ except ImportError:
     import unittest
 
 from M2Crypto import Err, Rand, SSL, m2
-from fips import fips_mode
+from .fips import fips_mode
 from platform import linux_distribution
 
 srv_host = 'localhost'
@@ -1207,5 +1207,5 @@ if __name__ == '__main__':
         zap_servers()
 
     if report_leaks:
-        import alltests
+        from . import alltests
         alltests.dump_garbage()

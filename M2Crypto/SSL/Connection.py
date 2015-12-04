@@ -1,3 +1,5 @@
+from __future__ import absolute_import, print_function
+
 """SSL Connection aka socket
 
 Copyright (c) 1999-2004 Ng Pheng Siong. All rights reserved.
@@ -16,14 +18,12 @@ __all__ = ['Connection',
 import socket
 
 # M2Crypto
-import Checker
-
-import timeout
-
-from Cipher import Cipher, Cipher_Stack
-from M2Crypto import X509, m2
-from M2Crypto.SSL import SSLError
-from Session import Session
+from .. import X509, m2
+from . import Checker
+from . import timeout
+from . import SSLError
+from .Cipher import Cipher, Cipher_Stack
+from .Session import Session
 
 #SSLError = getattr(__import__('M2Crypto.SSL', globals(), locals(),
 #    'SSLError'), 'SSLError')

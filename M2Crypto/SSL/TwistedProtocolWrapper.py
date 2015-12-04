@@ -14,9 +14,8 @@ from twisted.protocols.policies import ProtocolWrapper
 from twisted.internet.interfaces import ITLSTransport
 from zope.interface import implements
 
-import M2Crypto # for M2Crypto.BIO.BIOError
-from M2Crypto import m2, X509
-from M2Crypto.SSL import Checker
+from .. import m2, X509
+from . import Checker
 
 
 def _alwaysSucceedsPostConnectionCheck(peerX509, expectedHost):

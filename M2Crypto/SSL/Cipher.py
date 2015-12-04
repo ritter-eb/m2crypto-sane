@@ -1,10 +1,12 @@
+from __future__ import absolute_import
+
 """SSL Ciphers
 
 Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 
 __all__ = ['Cipher', 'Cipher_Stack']
 
-from M2Crypto import m2
+from .. import m2
 
 class Cipher:
     def __init__(self, cipher):

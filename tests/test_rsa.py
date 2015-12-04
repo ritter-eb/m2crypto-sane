@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+
 """Unit tests for M2Crypto.RSA.
 
 Copyright (c) 2000 Ng Pheng Siong. All rights reserved."""
@@ -13,7 +15,7 @@ except ImportError:
 
 from M2Crypto import BIO, RSA, Rand, X509, m2
 
-from fips import fips_mode
+from .fips import fips_mode
 
 class RSATestCase(unittest.TestCase):
 

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 """
 M2Crypto is the most complete Python wrapper for OpenSSL featuring RSA, DSA,
 DH, EC, HMACs, message digests, symmetric ciphers (including AES); SSL
@@ -19,37 +21,35 @@ Copyright 2008-2011 Heikki Toivonen. All rights reserved.
 version_info = (0, 21, 1)
 version = '.'.join([str(_v) for _v in version_info])
 
-import _m2crypto
-import m2
-import ASN1
-import AuthCookie
-import BIO
-import BN
-import Rand
-import DH
-import DSA
+from . import _m2crypto
+from . import m2
+from . import ASN1
+from . import AuthCookie
+from . import BIO
+from . import BN
+from . import Rand
+from . import DH
+from . import DSA
 if m2.OPENSSL_VERSION_NUMBER >= 0x90800F and m2.OPENSSL_NO_EC == 0:
-    import EC
-import Err
-import Engine
-import EVP
-import RSA
-import RC4
-import SMIME
-import SSL
-import X509
-import PGP
-import m2urllib
+    from . import EC
+from . import Err
+from . import Engine
+from . import EVP
+from . import RSA
+from . import RC4
+from . import SMIME
+from . import SSL
+from . import X509
+from . import PGP
+from . import m2urllib
 # Backwards compatibility.
 urllib2 = m2urllib
 
-import m2urllib2
-
-import ftpslib
-import httpslib
-import m2xmlrpclib
-import threading
-import util
+from . import ftpslib
+from . import httpslib
+from . import m2xmlrpclib
+from . import threading
+from . import util
 
 encrypt = 1
 decrypt = 0

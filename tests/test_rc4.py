@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+
 """Unit tests for M2Crypto.RC4.
 
 Copyright (c) 2009 Heikki Toivonen. All rights reserved."""
@@ -11,7 +13,7 @@ except ImportError:
 from M2Crypto import RC4, Rand
 from binascii import hexlify
 
-from fips import fips_mode
+from .fips import fips_mode
 
 class RC4TestCase(unittest.TestCase):
 

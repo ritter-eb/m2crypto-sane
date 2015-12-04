@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # XXX memory leaks
+
+from __future__ import absolute_import
+
 """
     Unit tests for M2Crypto.EC, the curves
 
@@ -25,7 +28,7 @@ except ImportError:
     import unittest
 
 from M2Crypto import EC, Rand
-from test_ecdsa import ECDSATestCase as ECDSATest
+from .test_ecdsa import ECDSATestCase as ECDSATest
 
 
 curves = [

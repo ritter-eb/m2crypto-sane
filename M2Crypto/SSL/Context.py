@@ -1,16 +1,17 @@
+from __future__ import absolute_import
+
 """SSL Context
 
 Copyright (c) 1999-2004 Ng Pheng Siong. All rights reserved."""
 
 __all__ = ['map', 'Context']
 
+import sys
+import weakref
 
 # M2Crypto
-import cb
-import sys
-
-from M2Crypto import BIO, Err, RSA, X509, m2, util
-from weakref import WeakValueDictionary
+from . import cb
+from .. import BIO, Err, RSA, X509, m2, util
 
 # Python 2 has int() and long().
 # Python 3 and higher only has int().
@@ -22,7 +23,7 @@ class _ctxmap:  # noqa
     singleton = None
 
     def __init__(self):
-        self.map = WeakValueDictionary()
+        self.map = weakref.WeakValueDictionary()
 
     def __getitem__(self, key):
         return self.map[key]
