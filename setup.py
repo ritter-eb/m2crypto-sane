@@ -78,7 +78,8 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         self.swig_opts.extend(['-I%s' % i for i in self.include_dirs])
         self.swig_opts.append('-includeall')
         self.swig_opts.append('-modern')
-        self.swig_opts.append('-builtin')
+        if sys.version_info[:2] > (2, 6):
+            self.swig_opts.append('-builtin')
 
         # These two lines are a workaround for
         # http://bugs.python.org/issue2624 , hard-coding that we are only
