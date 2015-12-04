@@ -16,7 +16,7 @@ if sys.version_info[:2] <= (2, 6):
     # This covers hopefully only RHEL-6 (users of any other 2.6 Pythons
     # ... Solaris?, *BSD? ... should file an issue and be prepared to
     # help with adjusting this script.
-    requires_list = ["unittest2"]
+    requires_list = ["unittest2==0.8.0"]
     _multiarch = ""
 else:
     requires_list = []
