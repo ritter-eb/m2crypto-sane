@@ -181,9 +181,29 @@ class Connection:
     def connect_ssl(self):
         return m2.ssl_connect(self.ssl, self._timeout)
 
-    def connect(self, addr):
+    def connect(self, addr, starttls=None):
         self.socket.connect(addr)
         self.addr = addr
+        if starttls:
+            # primitive method, no error checks yet
+            if starttls == "smtp":
+                data = self.socket.recv(500)
+                self.socket.send("EHLO M2Crypto\r\n")
+                data = self.socket.recv(500)
+                self.socket.send("STARTTLS\r\n")
+                data = self.socket.recv(500)
+            elif starttls == "imap":
+                data = self.socket.recv(500)
+                self.socket.send(". STARTTLS\r\n")
+                data = self.socket.recv(500)
+            elif starttls == "ftp":
+                data = self.socket.recv(500)
+                self.socket.send("AUTH TLS\r\n")
+                data = self.socket.recv(500)
+            elif starttls == "pop3":
+                data = self.socket.recv(500)
+                self.socket.send("STLS\r\n")
+                data = self.socket.recv(500)
         self.setup_ssl()
         self.set_connect_state()
         ret = self.connect_ssl()
