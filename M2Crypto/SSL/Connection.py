@@ -185,14 +185,13 @@ class Connection:
         """Connect to a server specified by 'addr'. Optionally a start method can be choosen
         which is handled before the TLS connection is established. Argument can be a string
         with the protocol name (smtp, imap, ftp, pop3) or a callback function. The callback
-        gets the established socket as argument and needs to return True if everything is
-        fine and false for an error."""
+        gets the established socket as argument and may throw an Checker.SSLVerificationError()
+        exception in case of an error."""
         self.socket.connect(addr)
         self.addr = addr
         if starttls:
             # primitive method, no error checks yet
             if hasattr(starttls, "__call__"): # callback function
-                # ignore retrun value (True means ok, False means error)
                 starttls(self.socket)
             elif starttls == "smtp":
                 data = self.socket.recv(500)
