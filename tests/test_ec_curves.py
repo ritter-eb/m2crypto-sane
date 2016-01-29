@@ -26,12 +26,86 @@ except ImportError:
     import unittest
 
 from M2Crypto import EC, Rand
+from tests import plat_fedora
 
 
 curves = [
-    ('X9_62_prime256v1', 256),
+    ('secp112r1', 112),
+    ('secp112r2', 112),
+    ('secp128r1', 128),
+    ('secp128r2', 128),
+    ('secp160k1', 160),
+    ('secp160r1', 160),
+    ('secp160r2', 160),
+    ('secp192k1', 192),
+    ('secp224k1', 224),
+    ('secp224r1', 224),
+    ('secp256k1', 256),
     ('secp384r1', 384),
+    ('secp521r1', 521),
+
+    ('sect113r1', 113),
+    ('sect113r2', 113),
+    ('sect131r1', 131),
+    ('sect131r2', 131),
+    ('sect163k1', 163),
+    ('sect163r1', 163),
+    ('sect163r2', 163),
+    ('sect193r1', 193),
+    ('sect193r2', 193),
+    ('sect233k1', 233),
+    ('sect233r1', 233),
+    ('sect239k1', 239),
+    ('sect283k1', 283),
+    ('sect283r1', 283),
+    ('sect409k1', 409),
+    ('sect409r1', 409),
+    ('sect571k1', 571),
+    ('sect571r1', 571),
+
+    ('X9_62_prime192v1', 192),
+    ('X9_62_prime192v2', 192),
+    ('X9_62_prime192v3', 192),
+    ('X9_62_prime239v1', 239),
+    ('X9_62_prime239v2', 239),
+    ('X9_62_prime239v3', 239),
+    ('X9_62_prime256v1', 256),
+
+    ('X9_62_c2pnb163v1', 163),
+    ('X9_62_c2pnb163v2', 163),
+    ('X9_62_c2pnb163v3', 163),
+    ('X9_62_c2pnb176v1', 176),
+    ('X9_62_c2tnb191v1', 191),
+    ('X9_62_c2tnb191v2', 191),
+    ('X9_62_c2tnb191v3', 191),
+    ('X9_62_c2pnb208w1', 208),
+    ('X9_62_c2tnb239v1', 239),
+    ('X9_62_c2tnb239v2', 239),
+    ('X9_62_c2tnb239v3', 239),
+    ('X9_62_c2pnb272w1', 272),
+    ('X9_62_c2pnb304w1', 304),
+    ('X9_62_c2tnb359v1', 359),
+    ('X9_62_c2pnb368w1', 368),
+    ('X9_62_c2tnb431r1', 431),
+
+    ('wap_wsg_idm_ecid_wtls1', 113),
+    ('wap_wsg_idm_ecid_wtls3', 163),
+    ('wap_wsg_idm_ecid_wtls4', 113),
+    ('wap_wsg_idm_ecid_wtls5', 163),
+    ('wap_wsg_idm_ecid_wtls6', 112),
+    ('wap_wsg_idm_ecid_wtls7', 160),
+    ('wap_wsg_idm_ecid_wtls8', 112),
+    ('wap_wsg_idm_ecid_wtls9', 160),
+    ('wap_wsg_idm_ecid_wtls10', 233),
+    ('wap_wsg_idm_ecid_wtls11', 233),
+    ('wap_wsg_idm_ecid_wtls12', 224),
 ]
+
+if plat_fedora:
+    curves = [
+        ('X9_62_prime256v1', 256),
+        ('secp384r1', 384)
+    ]
 
 # The following two curves, according to OpenSSL, have a
 # "Questionable extension field!" and are not supported by
@@ -45,9 +119,9 @@ curves = [
 #    ('ipsec4', 185),
 # ]
 
-
 class ECCurveTests(unittest.TestCase):
     # data = sha.sha('Kilroy was here!').digest()     # 160 bits
+    #
     # keep short (48 bits) so lesser curves will work...  ECDSA requires
     # curve be equal or longer than digest
     data = "digest"
