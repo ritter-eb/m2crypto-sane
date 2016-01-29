@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-
 from __future__ import print_function
-
 """Unit tests for M2Crypto.SSL.
 
 Copyright (c) 2000-2004 Ng Pheng Siong. All rights reserved.
@@ -21,7 +19,6 @@ Others:
 - ForkingSSLServer
 - ThreadingSSLServer
 """
-
 import os
 import signal
 import socket
@@ -35,14 +32,9 @@ except ImportError:
 
 from M2Crypto import Err, Rand, SSL, m2
 from fips import fips_mode
-from platform import linux_distribution
+from tests import plat_debian, plat_fedora
 
 srv_host = 'localhost'
-distro_string = linux_distribution(supported_dists=('redhat', 'fedora',
-                                                    'debian'),
-                                   full_distribution_name=False)[0]
-plat_fedora = distro_string in ['redhat', 'fedora']
-plat_debian = distro_string in ['debian']
 
 def allocate_srv_port():
     s = socket.socket()
