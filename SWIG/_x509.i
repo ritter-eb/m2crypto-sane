@@ -64,7 +64,7 @@ extern int X509_set_subject_name(X509 *, X509_NAME *);
 %rename(x509_cmp_current_time) X509_cmp_current_time;
 extern int X509_cmp_current_time(ASN1_UTCTIME *);
 
-                            
+
 /* From x509.h */
 /* standard trust ids */
 %constant int X509_TRUST_DEFAULT      = -1;
@@ -188,7 +188,7 @@ extern ASN1_STRING *X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *);
     if (PyString_Check($input)) {
         Py_ssize_t len;
 
-        $1 = (unsigned char *)PyString_AsString($input); 
+        $1 = (unsigned char *)PyString_AsString($input);
         len = PyString_Size($input);
 #endif // PY_MAJOR_VERSION >= 3
 
@@ -557,8 +557,8 @@ x509v3_set_nconf() {
 X509_EXTENSION *
 x509v3_ext_conf(void *conf, X509V3_CTX *ctx, char *name, char *value) {
       X509_EXTENSION * ext = NULL;
-      ext = X509V3_EXT_conf(conf, ctx, name, value); 
-      PyMem_Free(ctx); 
+      ext = X509V3_EXT_conf(conf, ctx, name, value);
+      PyMem_Free(ctx);
       return ext;
 }
 
@@ -569,7 +569,7 @@ void x509_extension_free(X509_EXTENSION *ext) {
 
 PyObject *x509_extension_get_name(X509_EXTENSION *ext) {
     PyObject * ext_name;
-    const char * ext_name_str; 
+    const char * ext_name_str;
     ext_name_str = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
     if (!ext_name_str) {
         PyErr_SetString(_x509_err, ERR_reason_error_string(ERR_get_error()));
@@ -623,13 +623,13 @@ in openssl-0.9.8 than they are in openssl-0.9.7. This will
 be picked up by the C preprocessor, not the SWIG preprocessor.
 Used in the wrapping of ASN1_seq_unpack and ASN1_seq_pack functions.
 */
-#if OPENSSL_VERSION_NUMBER >= 0x0090800fL 
+#if OPENSSL_VERSION_NUMBER >= 0x0090800fL
 #define D2ITYPE d2i_of_void *
 #define I2DTYPE i2d_of_void *
 #else
 #define D2ITYPE char *(*)()
 #define I2DTYPE int (*)()
-#endif   
+#endif
 
 STACK_OF(X509) *
 make_stack_from_der_sequence(PyObject * pyEncodedString){
@@ -658,23 +658,23 @@ make_stack_from_der_sequence(PyObject * pyEncodedString){
         return NULL;
     }
 
-    certs = ASN1_seq_unpack_X509((unsigned char *)encoded_string, encoded_string_len, d2i_X509, X509_free ); 
+    certs = ASN1_seq_unpack_X509((unsigned char *)encoded_string, encoded_string_len, d2i_X509, X509_free );
     if (!certs) {
        PyErr_SetString(_x509_err, ERR_reason_error_string(ERR_get_error()));
        return NULL;
     }
- 
+
     return certs;
 }
 
 PyObject *
 get_der_encoding_stack(STACK_OF(X509) *stack){
     PyObject * encodedString;
-    
+
     unsigned char * encoding;
-    int len; 
-    
-    encoding = ASN1_seq_pack_X509(stack, i2d_X509, NULL, &len); 
+    int len;
+
+    encoding = ASN1_seq_pack_X509(stack, i2d_X509, NULL, &len);
     if (!encoding) {
        PyErr_SetString(_x509_err, ERR_reason_error_string(ERR_get_error()));
        return NULL;
@@ -687,7 +687,7 @@ get_der_encoding_stack(STACK_OF(X509) *stack){
 #endif // PY_MAJOR_VERSION >= 3 
 
     OPENSSL_free(encoding);
-    return encodedString; 
+    return encodedString;
 }
 
 %}
@@ -695,7 +695,7 @@ get_der_encoding_stack(STACK_OF(X509) *stack){
 /* Free malloc'ed return value for x509_name_oneline */
 %typemap(ret) char * {
     if ($1 != NULL)
-        OPENSSL_free($1); 
+        OPENSSL_free($1);
 }
 %inline %{
 char *x509_name_oneline(X509_NAME *x) {
