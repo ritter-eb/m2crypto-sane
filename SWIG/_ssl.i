@@ -28,10 +28,12 @@ http://thread.gmane.org/gmane.comp.web.curl.library/36495
 */
 #ifdef _WIN32
 #include <winsock2.h>
+#include <time.h>
+#include <windows.h>
 #else
 #include <poll.h>
-#endif
 #include <sys/time.h>
+#endif
 %}
 
 %apply Pointer NONNULL { SSL_CTX * };
@@ -271,7 +273,7 @@ void ssl_ctx_passphrase_callback(SSL_CTX *ctx, PyObject *pyfunc) {
 
 int ssl_ctx_use_x509(SSL_CTX *ctx, X509 *x) {
     int i;
-    
+
     if (!(i = SSL_CTX_use_certificate(ctx, x))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -282,7 +284,7 @@ int ssl_ctx_use_x509(SSL_CTX *ctx, X509 *x) {
 
 int ssl_ctx_use_cert(SSL_CTX *ctx, char *file) {
     int i;
-    
+
     if (!(i = SSL_CTX_use_certificate_file(ctx, file, SSL_FILETYPE_PEM))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -303,7 +305,7 @@ int ssl_ctx_use_cert_chain(SSL_CTX *ctx, char *file) {
 
 int ssl_ctx_use_privkey(SSL_CTX *ctx, char *file) {
     int i;
-    
+
     if (!(i = SSL_CTX_use_PrivateKey_file(ctx, file, SSL_FILETYPE_PEM))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -334,7 +336,7 @@ int ssl_ctx_use_pkey_privkey(SSL_CTX *ctx, EVP_PKEY *pkey) {
 
 int ssl_ctx_check_privkey(SSL_CTX *ctx) {
     int ret;
-    
+
     if (!(ret = SSL_CTX_check_private_key(ctx))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -449,7 +451,7 @@ int ssl_set_session_id_context(SSL *ssl, PyObject *sid_ctx) {
 
 int ssl_set_fd(SSL *ssl, int fd) {
     int ret;
-    
+
     if (!(ret = SSL_set_fd(ssl, fd))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -480,6 +482,67 @@ static void ssl_handle_error(int ssl_err, int ret) {
             PyErr_SetString(_ssl_err, "unexpected SSL error");
      }
 }
+
+#ifdef _WIN32
+/* Implementation from
+ * http://web.archive.org/web/20130406033313/http://suacommunity.com/dictionary/gettimeofday-entry.php
+ */
+
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
+
+struct timezone {
+	int tz_minuteswest;	/* minutes W of Greenwich */
+	int tz_dsttime;		/* type of dst correction */
+};
+
+int gettimeofday(struct timeval *tv, struct timezone *tz) {
+/* Define a structure to receive the current Windows filetime */
+	FILETIME ft;
+
+/* Initialize the present time to 0 and the timezone to UTC */
+	unsigned __int64 tmpres = 0;
+	static int tzflag = 0;
+
+	if (NULL != tv) {
+		GetSystemTimeAsFileTime(&ft);
+
+/* The GetSystemTimeAsFileTime returns the number of 100 nanosecond
+   intervals since Jan 1, 1601 in a structure. Copy the high bits to
+   the 64 bit tmpres, shift it left by 32 then or in the low 32 bits. */
+		tmpres |= ft.dwHighDateTime;
+		tmpres <<= 32;
+		tmpres |= ft.dwLowDateTime;
+
+/* Convert to microseconds by dividing by 10 */
+		tmpres /= 10;
+
+/* The Unix epoch starts on Jan 1 1970.  Need to subtract the difference
+   in seconds from Jan 1 1601. */
+		tmpres -= DELTA_EPOCH_IN_MICROSECS;
+
+/* Finally change microseconds to seconds and place in the seconds value.
+   The modulus picks up the microseconds. */
+		tv->tv_sec = (long)(tmpres / 1000000UL);
+		tv->tv_usec = (long)(tmpres % 1000000UL);
+	}
+
+	if (NULL != tz) {
+		if (!tzflag) {
+			_tzset();
+			tzflag++;
+		}
+/* Adjust for the timezone west of Greenwich */
+		tz->tz_minuteswest = _timezone / 60;
+		tz->tz_dsttime = _daylight;
+	}
+
+	return 0;
+}
+#endif
 
 static int ssl_sleep_with_timeout(SSL *ssl, const struct timeval *start,
                                   double timeout, int ssl_err) {
@@ -711,13 +774,13 @@ PyObject *ssl_read_nbio(SSL *ssl, int num) {
         PyErr_SetString(PyExc_MemoryError, "ssl_read");
         return NULL;
     }
-    
-    
+
+
     Py_BEGIN_ALLOW_THREADS
     r = SSL_read(ssl, buf, num);
     Py_END_ALLOW_THREADS
-    
-    
+
+
     switch (SSL_get_error(ssl, r)) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
@@ -752,8 +815,8 @@ PyObject *ssl_read_nbio(SSL *ssl, int num) {
             break;
     }
     PyMem_Free(buf);
-    
-    
+
+
     return obj;
 }
 
@@ -798,7 +861,7 @@ int ssl_write(SSL *ssl, PyObject *blob, double timeout) {
         default:
             ret = -1;
     }
-    
+
     m2_PyBuffer_Release(blob, &buf);
     return ret;
 }
@@ -812,12 +875,12 @@ int ssl_write_nbio(SSL *ssl, PyObject *blob) {
         return -1;
     }
 
-    
+
     Py_BEGIN_ALLOW_THREADS
     r = SSL_write(ssl, buf.buf, buf.len);
     Py_END_ALLOW_THREADS
-    
-    
+
+
     switch (SSL_get_error(ssl, r)) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
@@ -842,7 +905,7 @@ int ssl_write_nbio(SSL *ssl, PyObject *blob) {
         default:
             ret = -1;
     }
-    
+
     m2_PyBuffer_Release(blob, &buf);
     return ret;
 }
