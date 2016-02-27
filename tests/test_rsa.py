@@ -14,6 +14,7 @@ except ImportError:
 from M2Crypto import BIO, RSA, Rand, X509, m2
 
 from fips import fips_mode
+from tests.test_rsa_crash import TestRSASignedCertCrash
 
 class RSATestCase(unittest.TestCase):
 
@@ -63,7 +64,16 @@ class RSATestCase(unittest.TestCase):
         self.assertEqual(len(rsa), 1024)
         self.assertEqual(rsa.e,
                          '\000\000\000\003\001\000\001')  # aka 65537 aka 0xf4
-        self.assertEqual(rsa.n, "\x00\x00\x00\x81\x00\xcde!\x15\xdah\xb5`\xce[\xd6\x17d\xba8\xc1I\xb1\xf1\xber\x86K\xc7\xda\xb3\x98\xd6\xf6\x80\xae\xaa\x8f!\x9a\xefQ\xdeh\xbb\xc5\x99\x01o\xebGO\x8e\x9b\x9a\x18\xfb6\xba\x12\xfc\xf2\x17\r$\x00\xa1\x1a \xfc/\x13iUm\x04\x13\x0f\x91D~\xbf\x08\x19C\x1a\xe2\xa3\x91&\x8f\xcf\xcc\xf3\xa4HRf\xaf\xf2\x19\xbd\x05\xe36\x9a\xbbQ\xc86|(\xad\x83\xf2Eu\xb2EL\xdf\xa4@\x7f\xeel|\xfcU\x03\xdb\x89'")
+        self.assertEqual(rsa.n,
+                         "\x00\x00\x00\x81\x00\xcde!\x15\xdah\xb5`\xce" +
+                         "[\xd6\x17d\xba8\xc1I\xb1\xf1\xber\x86K\xc7\xda" +
+                         "\xb3\x98\xd6\xf6\x80\xae\xaa\x8f!\x9a\xefQ\xdeh" +
+                         "\xbb\xc5\x99\x01o\xebGO\x8e\x9b\x9a\x18\xfb6\xba" +
+                         "\x12\xfc\xf2\x17\r$\x00\xa1\x1a \xfc/\x13iUm\x04" +
+                         "\x13\x0f\x91D~\xbf\x08\x19C\x1a\xe2\xa3\x91&\x8f" +
+                         "\xcf\xcc\xf3\xa4HRf\xaf\xf2\x19\xbd\x05\xe36\x9a" +
+                         "\xbbQ\xc86|(\xad\x83\xf2Eu\xb2EL\xdf\xa4@\x7f" +
+                         "\xeel|\xfcU\x03\xdb\x89'")
         with self.assertRaises(AttributeError):
             getattr(rsa, 'nosuchprop')
         self.assertEqual(rsa.check_key(), 1)
@@ -251,7 +261,7 @@ class RSATestCase(unittest.TestCase):
         Testing calling sign with an unsupported message digest algorithm
         """
         rsa = RSA.load_key(self.privkey)
-        #message = "This is the message string"
+        # message = "This is the message string"
         digest = 'a' * 16
         with self.assertRaises(ValueError):
                 rsa.sign(digest, 'bad_digest_method')
@@ -261,7 +271,7 @@ class RSATestCase(unittest.TestCase):
         Testing calling verify with an unsupported message digest algorithm
         """
         rsa = RSA.load_key(self.privkey)
-        #message = "This is the message string"
+        # message = "This is the message string"
         digest = 'a' * 16
         signature = rsa.sign(digest, 'sha1')
         with self.assertRaises(ValueError):
@@ -276,7 +286,7 @@ class RSATestCase(unittest.TestCase):
         message = "This is the message string"
         digest = hashlib.sha1(message).digest()
         signature = rsa.sign(digest, 'sha1')
-        #rsa2 = RSA.load_pub_key(self.pubkey)
+        # rsa2 = RSA.load_pub_key(self.pubkey)
         with self.assertRaises(RSA.RSAError):
             rsa.verify(digest, signature, 'md5')
 
@@ -311,7 +321,11 @@ class RSATestCase(unittest.TestCase):
 
 
 def suite():
-    return unittest.makeSuite(RSATestCase)
+    result = unittest.TestSuite()
+    loader = unittest.TestLoader()
+    result.addTest(loader.loadTestsFromTestCase(RSATestCase))
+    result.addTest(loader.loadTestsFromTestCase(TestRSASignedCertCrash))
+    return result
 
 
 if __name__ == '__main__':
