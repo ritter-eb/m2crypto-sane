@@ -9,26 +9,28 @@ Copyright (C) 2004-2007 OSAF. All Rights Reserved.
 Author: Heikki Toivonen
 """
 
-# M2Crypto
 import binascii
-from M2Crypto import ASN1, BIO, Err, EVP, util
-from . import m2
+
+from M2Crypto import ASN1, BIO, EVP, Err, m2, util  # noqa
 
 FORMAT_DER = 0
 FORMAT_PEM = 1
 
-class X509Error(Exception): pass
+
+class X509Error(Exception):
+    pass
 
 m2.x509_init(X509Error)
 
 V_OK = m2.X509_V_OK
+
 
 def new_extension(name, value, critical=0, _pyfree=1):
     """
     Create new X509_Extension instance.
     """
     if name == 'subjectKeyIdentifier' and \
-        value.strip('0123456789abcdefABCDEF:') is not '':
+            value.strip('0123456789abcdefABCDEF:') is not '':
         raise ValueError('value must be precomputed hash')
     lhash = m2.x509v3_lhash()
     ctx = m2.x509v3_set_conf_lhash(lhash)
@@ -38,7 +40,7 @@ def new_extension(name, value, critical=0, _pyfree=1):
     return x509_ext
 
 
-class X509_Extension:
+class X509_Extension:  # noqa
     """
     X509 Extension
     """
@@ -95,7 +97,7 @@ class X509_Extension:
         return buf.read_all()
 
 
-class X509_Extension_Stack:
+class X509_Extension_Stack:  # noqa
     """
     X509 Extension Stack
 
@@ -114,8 +116,9 @@ class X509_Extension_Stack:
             self._pyfree = _pyfree
             num = m2.sk_x509_extension_num(self.stack)
             for i in range(num):
-                self.pystack.append(X509_Extension(m2.sk_x509_extension_value(self.stack, i),
-                                                   _pyfree=_pyfree))
+                self.pystack.append(X509_Extension(
+                    m2.sk_x509_extension_value(self.stack, i),
+                    _pyfree=_pyfree))
         else:
             self.stack = m2.sk_x509_extension_new_null()
             self._pyfree = 1
@@ -164,7 +167,7 @@ class X509_Extension_Stack:
         return self.pystack.pop()
 
 
-class X509_Name_Entry:
+class X509_Name_Entry:  # noqa
     """
     X509 Name Entry
     """
@@ -191,17 +194,19 @@ class X509_Name_Entry:
                                            type, data)
 
     def get_object(self):
-        return ASN1.ASN1_Object(m2.x509_name_entry_get_object(self.x509_name_entry))
+        return ASN1.ASN1_Object(
+            m2.x509_name_entry_get_object(self.x509_name_entry))
 
     def get_data(self):
-        return ASN1.ASN1_String(m2.x509_name_entry_get_data(self.x509_name_entry))
+        return ASN1.ASN1_String(
+            m2.x509_name_entry_get_data(self.x509_name_entry))
 
     def create_by_txt(self, field, type, entry, len):
         return m2.x509_name_entry_create_by_txt(self.x509_name_entry._ptr(),
                                                 field, type, entry, len)
 
 
-class X509_Name:
+class X509_Name:  # noqa
     """
     X509 Name
     """
@@ -243,12 +248,14 @@ class X509_Name:
             self.m2_x509_name_free(self.x509_name)
 
     def __str__(self):
-        assert m2.x509_name_type_check(self.x509_name), "'x509_name' type error"
+        assert m2.x509_name_type_check(self.x509_name), \
+            "'x509_name' type error"
         return m2.x509_name_oneline(self.x509_name)
 
     def __getattr__(self, attr):
         if attr in self.nid:
-            assert m2.x509_name_type_check(self.x509_name), "'x509_name' type error"
+            assert m2.x509_name_type_check(self.x509_name), \
+                "'x509_name' type error"
             return m2.x509_name_by_nid(self.x509_name, self.nid[attr])
 
         if attr in self.__dict__:
@@ -258,8 +265,10 @@ class X509_Name:
 
     def __setattr__(self, attr, value):
         if attr in self.nid:
-            assert m2.x509_name_type_check(self.x509_name), "'x509_name' type error"
-            return m2.x509_name_set_by_nid(self.x509_name, self.nid[attr], value)
+            assert m2.x509_name_type_check(self.x509_name), \
+                "'x509_name' type error"
+            return m2.x509_name_set_by_nid(self.x509_name, self.nid[attr],
+                                           value)
 
         self.__dict__[attr] = value
 
@@ -276,7 +285,8 @@ class X509_Name:
             yield self[i]
 
     def _ptr(self):
-        #assert m2.x509_name_type_check(self.x509_name), "'x509_name' type error"
+        # assert m2.x509_name_type_check(self.x509_name), \
+        #     "'x509_name' type error"
         return self.x509_name
 
     def add_entry_by_txt(self, field, type, entry, len, loc, set):
@@ -308,18 +318,22 @@ class X509_Name:
                        by this many spaces.
         @param flags:  Flags that control how the output should be formatted.
         """
-        assert m2.x509_name_type_check(self.x509_name), "'x509_name' type error"
+        assert m2.x509_name_type_check(self.x509_name), \
+            "'x509_name' type error"
         buf = BIO.MemoryBuffer()
         m2.x509_name_print_ex(buf.bio_ptr(), self.x509_name, indent, flags)
         return buf.read_all()
 
     def as_der(self):
-        assert m2.x509_name_type_check(self.x509_name), "'x509_name' type error"
+        assert m2.x509_name_type_check(self.x509_name), \
+            "'x509_name' type error"
         return m2.x509_name_get_der(self.x509_name)
 
     def as_hash(self):
-        assert m2.x509_name_type_check(self.x509_name), "'x509_name' type error"
+        assert m2.x509_name_type_check(self.x509_name), \
+            "'x509_name' type error"
         return m2.x509_name_hash(self.x509_name)
+
 
 class X509:
     """
@@ -385,7 +399,8 @@ class X509:
         elif format == FORMAT_DER:
             return m2.i2d_x509_bio(bio.bio_ptr(), self.x509)
         else:
-            raise ValueError("Unknown filetype. Must be either FORMAT_PEM or FORMAT_DER")
+            raise ValueError(
+                "Unknown filetype. Must be either FORMAT_PEM or FORMAT_DER")
 
     def set_version(self, version):
         """
@@ -437,8 +452,8 @@ class X509:
         asn1_integer = m2.x509_get_serial_number(self.x509)
         return m2.asn1_integer_set(asn1_integer, serial)
         # XXX Or should I do this?
-        #asn1_integer = m2.asn1_integer_new()
-        #m2.asn1_integer_set(asn1_integer, serial)
+        # asn1_integer = m2.asn1_integer_new()
+        # m2.asn1_integer_set(asn1_integer, serial)
         # return m2.x509_set_serial_number(self.x509, asn1_integer)
 
     def get_not_before(self):
@@ -515,7 +530,7 @@ class X509:
         x509 = self.x509
 
         for i in range(m2.x509_get_ext_count(x509)):
-            extPtr = m2x509_get_ext(x509, i)
+            extPtr = m2x509_get_ext(x509, i)  # noqa
             if m2x509_extension_get_name(extPtr) == name:
                 return X509_Extension(extPtr, _pyfree=0)
 
@@ -580,7 +595,8 @@ class X509:
 
         @param id: Purpose id. See X509_PURPOSE_* constants.
         @param ca: 1 if the certificate should be CA, 0 otherwise.
-        @return: 0 if the certificate purpose does not match, nonzero otherwise.
+        @return: 0 if the certificate purpose does not match, nonzero
+                 otherwise.
         """
         return m2.x509_check_purpose(self.x509, id, ca)
 
@@ -597,14 +613,17 @@ class X509:
         digest = md.final()
         return binascii.hexlify(digest).upper()
 
+
 def load_cert(file, format=FORMAT_PEM):
     """
     Load certificate from file.
 
     @type file: string
-    @param file: Name of file containing certificate in either DER or PEM format.
+    @param file: Name of file containing certificate in either DER or
+                 PEM format.
     @type format: int, either FORMAT_PEM or FORMAT_DER
-    @param format: Describes the format of the file to be loaded, either PEM or DER.
+    @param format: Describes the format of the file to be loaded, either
+                   PEM or DER.
 
     @rtype: M2Crypto.X509.X509
     @return: M2Crypto.X509.X509 object.
@@ -618,7 +637,9 @@ def load_cert(file, format=FORMAT_PEM):
             raise X509Error(Err.get_error())
         return X509(cptr, _pyfree=1)
     else:
-        raise ValueError("Unknown format. Must be either FORMAT_DER or FORMAT_PEM")
+        raise ValueError(
+            "Unknown format. Must be either FORMAT_DER or FORMAT_PEM")
+
 
 def load_cert_bio(bio, format=FORMAT_PEM):
     """
@@ -627,7 +648,8 @@ def load_cert_bio(bio, format=FORMAT_PEM):
     @type bio: M2Crypto.BIO.BIO
     @param bio: BIO pointing at a certificate in either DER or PEM format.
     @type format: int, either FORMAT_PEM or FORMAT_DER
-    @param format: Describes the format of the cert to be loaded, either PEM or DER.
+    @param format: Describes the format of the cert to be loaded,
+                   either PEM or DER.
 
     @rtype: M2Crypto.X509.X509
     @return: M2Crypto.X509.X509 object.
@@ -637,10 +659,12 @@ def load_cert_bio(bio, format=FORMAT_PEM):
     elif format == FORMAT_DER:
         cptr = m2.d2i_x509(bio._ptr())
     else:
-        raise ValueError("Unknown format. Must be either FORMAT_DER or FORMAT_PEM")
+        raise ValueError(
+            "Unknown format. Must be either FORMAT_DER or FORMAT_PEM")
     if cptr is None:
         raise X509Error(Err.get_error())
     return X509(cptr, _pyfree=1)
+
 
 def load_cert_string(string, format=FORMAT_PEM):
     """
@@ -649,13 +673,15 @@ def load_cert_string(string, format=FORMAT_PEM):
     @type string: string
     @param string: String containing a certificate in either DER or PEM format.
     @type format: int, either FORMAT_PEM or FORMAT_DER
-    @param format: Describes the format of the cert to be loaded, either PEM or DER.
+    @param format: Describes the format of the cert to be loaded,
+                   either PEM or DER.
 
     @rtype: M2Crypto.X509.X509
     @return: M2Crypto.X509.X509 object.
     """
     bio = BIO.MemoryBuffer(string)
     return load_cert_bio(bio, format)
+
 
 def load_cert_der_string(string):
     """
@@ -673,7 +699,8 @@ def load_cert_der_string(string):
         raise X509Error(Err.get_error())
     return X509(cptr, _pyfree=1)
 
-class X509_Store_Context:
+
+class X509_Store_Context:  # noqa
     """
     X509 Store Context
     """
@@ -723,7 +750,7 @@ class X509_Store_Context:
         return X509_Stack(m2.x509_store_ctx_get1_chain(self.ctx), 1, 1)
 
 
-class X509_Store:
+class X509_Store:  # noqa
     """
     X509 Store
     """
@@ -760,7 +787,7 @@ class X509_Store:
     add_cert = add_x509
 
 
-class X509_Stack:
+class X509_Stack:  # noqa
     """
     X509 Stack
 
@@ -905,7 +932,8 @@ class Request:
         elif format == FORMAT_DER:
             return m2.i2d_x509_req_bio(bio.bio_ptr(), self.req)
         else:
-            raise ValueError("Unknown filetype. Must be either FORMAT_DER or FORMAT_PEM")
+            raise ValueError(
+                "Unknown filetype. Must be either FORMAT_DER or FORMAT_PEM")
 
     def get_pubkey(self):
         """
@@ -986,9 +1014,11 @@ def load_request(file, format=FORMAT_PEM):
     Load certificate request from file.
 
     @type file: string
-    @param file: Name of file containing certificate request in either PEM or DER format.
+    @param file: Name of file containing certificate request in either
+                 PEM or DER format.
     @type format: int, either FORMAT_PEM or FORMAT_DER
-    @param format: Describes the format of the file to be loaded, either PEM or DER.
+    @param format: Describes the format of the file to be loaded,
+                   either PEM or DER.
 
     @rtype: M2Crypto.X509.Request
     @return: M2Crypto.X509.Request object.
@@ -999,20 +1029,24 @@ def load_request(file, format=FORMAT_PEM):
     elif format == FORMAT_DER:
         cptr = m2.d2i_x509_req(f.bio_ptr())
     else:
-        raise ValueError("Unknown filetype. Must be either FORMAT_PEM or FORMAT_DER")
+        raise ValueError(
+            "Unknown filetype. Must be either FORMAT_PEM or FORMAT_DER")
     f.close()
     if cptr is None:
         raise X509Error(Err.get_error())
     return Request(cptr, 1)
+
 
 def load_request_bio(bio, format=FORMAT_PEM):
     """
     Load certificate request from a bio.
 
     @type bio: M2Crypto.BIO.BIO
-    @param bio: BIO pointing at a certificate request in either DER or PEM format.
+    @param bio: BIO pointing at a certificate request in either DER or
+                PEM format.
     @type format: int, either FORMAT_PEM or FORMAT_DER
-    @param format: Describes the format of the request to be loaded, either PEM or DER.
+    @param format: Describes the format of the request to be loaded,
+                   either PEM or DER.
 
     @rtype: M2Crypto.X509.Request
     @return: M2Crypto.X509.Request object.
@@ -1022,25 +1056,30 @@ def load_request_bio(bio, format=FORMAT_PEM):
     elif format == FORMAT_DER:
         cptr = m2.d2i_x509_req(bio._ptr())
     else:
-        raise ValueError("Unknown format. Must be either FORMAT_DER or FORMAT_PEM")
+        raise ValueError(
+            "Unknown format. Must be either FORMAT_DER or FORMAT_PEM")
     if cptr is None:
         raise X509Error(Err.get_error())
     return Request(cptr, _pyfree=1)
+
 
 def load_request_string(string, format=FORMAT_PEM):
     """
     Load certificate request from a string.
 
     @type string: string
-    @param string: String containing a certificate request in either DER or PEM format.
+    @param string: String containing a certificate request in either DER or
+                   PEM format.
     @type format: int, either FORMAT_PEM or FORMAT_DER
-    @param format: Describes the format of the request to be loaded, either PEM or DER.
+    @param format: Describes the format of the request to be loaded,
+                   either PEM or DER.
 
     @rtype: M2Crypto.X509.Request
     @return: M2Crypto.X509.Request object.
     """
     bio = BIO.MemoryBuffer(string)
     return load_request_bio(bio, format)
+
 
 def load_request_der_string(string):
     """

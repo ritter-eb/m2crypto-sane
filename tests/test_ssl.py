@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, print_function
-
 """Unit tests for M2Crypto.SSL.
 
 Copyright (c) 2000-2004 Ng Pheng Siong. All rights reserved.
@@ -20,6 +19,7 @@ Others:
 - ForkingSSLServer
 - ThreadingSSLServer
 """
+import logging
 import os
 import signal
 import socket
@@ -32,8 +32,10 @@ except ImportError:
     import unittest
 
 from M2Crypto import Err, Rand, SSL, m2
-from fips import fips_mode
 from tests import plat_debian, plat_fedora
+from tests.fips import fips_mode
+
+log = logging.getLogger('test_SSL')
 
 srv_host = 'localhost'
 
@@ -136,7 +138,7 @@ class BaseSSLClientTestCase(unittest.TestCase):
         self.srv_addr = (srv_host, self.srv_port)
         self.srv_url = 'https://%s:%s/' % (srv_host, self.srv_port)
         self.args = ['s_server', '-quiet', '-www',
-                     #'-cert', 'server.pem', Implicitly using this
+                     # '-cert', 'server.pem', Implicitly using this
                      '-accept', str(self.srv_port)]
 
 
@@ -504,7 +506,7 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
             with self.assertRaises(IndexError):
                 cipher_stack.__getitem__(2)
             # For some reason there are 2 entries in the stack
-            #self.assertEqual(len(cipher_stack), 1, len(cipher_stack))
+            # self.assertEqual(len(cipher_stack), 1, len(cipher_stack))
             self.assertEqual(s.get_cipher_list(), 'AES128-SHA',
                              s.get_cipher_list())
 
@@ -516,7 +518,7 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
                                  '"%s"' % cipher.name())
                 self.assertEqual('AES128-SHA-128', str(cipher))
             # For some reason there are 2 entries in the stack
-            #self.assertEqual(i, 1, i)
+            # self.assertEqual(i, 1, i)
             self.assertEqual(i, len(cipher_stack))
 
             s.close()
@@ -635,9 +637,9 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
             from M2Crypto import X509
             assert not ok
             assert err == m2.X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT or \
-               err == m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY or \
-               err == m2.X509_V_ERR_CERT_UNTRUSTED or \
-               err == m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE
+                err == m2.X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY or \
+                err == m2.X509_V_ERR_CERT_UNTRUSTED or \
+                err == m2.X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE
             self.assertTrue(m2.ssl_ctx_get_cert_store(ctx_ptr))
             self.assertTrue(X509.X509(x509_ptr).as_pem())
         except AssertionError:
@@ -673,8 +675,9 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
             s = SSL.Connection(ctx)
             try:
                 s.connect(self.srv_addr)
-            except SSL.SSLError as e:
-                assert 0, e
+            except SSL.SSLError:
+                log.error('Failed to connect to %s', self.srv_addr)
+                raise
             data = self.http_get(s)
             s.close()
         finally:
@@ -1200,5 +1203,5 @@ if __name__ == '__main__':
         zap_servers()
 
     if report_leaks:
-        from . import alltests
+        from tests import alltests
         alltests.dump_garbage()
