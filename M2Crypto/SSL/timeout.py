@@ -8,9 +8,10 @@ Copyright 2008 Heikki Toivonen. All rights reserved.
 __all__ = ['DEFAULT_TIMEOUT', 'timeout', 'struct_to_timeout', 'struct_size']
 
 import struct
-from M2Crypto import m2
+from M2Crypto import m2  # noqa
 
 DEFAULT_TIMEOUT = 600
+
 
 class timeout:
 
@@ -25,6 +26,7 @@ class timeout:
 def struct_to_timeout(binstr):
     (s, ms) = struct.unpack('ll', binstr)
     return timeout(s, ms)
+
 
 def struct_size():
     return struct.calcsize('ll')
