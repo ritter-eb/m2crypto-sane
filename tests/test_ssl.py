@@ -34,7 +34,7 @@ except ImportError:
     import unittest
 
 from M2Crypto import (Err, Rand, SSL, X509, ftpslib, httpslib, m2, m2urllib,
-                      m2urllib2, m2xmlrpclib, util)
+                      m2urllib2, m2xmlrpclib, six, util)
 from tests import plat_fedora
 from tests.fips import fips_mode
 
@@ -249,8 +249,8 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
         try:
             ctx = SSL.Context('tlsv1')
             s = SSL.Connection(ctx)
-            with assertRaisesRegex(self, SSL.SSLError,
-                                   r'wrong version number|unexpected eof'):
+            with six.assertRaisesRegex(self, SSL.SSLError,
+                                       r'wrong version number|unexpected eof'):
                 s.connect(self.srv_addr)
             s.close()
         finally:
@@ -300,8 +300,8 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
             ctx = SSL.Context()
             s = SSL.Connection(ctx)
             s.set_cipher_list('AES128-SHA')
-            with assertRaisesRegex(self, SSL.SSLError,
-                                   'sslv3 alert handshake failure'):
+            with six.assertRaisesRegex(self, SSL.SSLError,
+                                       'sslv3 alert handshake failure'):
                 s.connect(self.srv_addr)
             s.close()
         finally:
@@ -314,7 +314,7 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
             ctx = SSL.Context()
             s = SSL.Connection(ctx)
             s.set_cipher_list('EXP-RC2-MD5')
-            with assertRaisesRegex(self, SSL.SSLError, 'no ciphers available'):
+            with six.assertRaisesRegex(self, SSL.SSLError, 'no ciphers available'):
                 s.connect(self.srv_addr)
             s.close()
         finally:
@@ -951,7 +951,7 @@ class TwistedSSLClientTestCase(BaseSSLClientTestCase):
             reactor.run()
         finally:
             self.stop_server(pid)
-        self.assertIn('s_server -quiet -www', twisted_data)
+        self.assertIn(b's_server -quiet -www', twisted_data)
 
 
 twisted_data = ''
