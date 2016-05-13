@@ -208,6 +208,8 @@ class RSA:
 
         @type algo: str
         @param algo: The hash algorithm to use
+        Legal values are 'sha1','sha224', 'sha256', 'ripemd160',
+        and 'md5'.
 
         @return: 1 or 0, depending on whether the signature was
         verified or not.

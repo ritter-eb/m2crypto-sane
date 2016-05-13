@@ -64,7 +64,7 @@ class MessageDigest:
 
         @return: -1 for Python error, 1 for success, 0 for OpenSSL failure.
         """
-        return m2.digest_update(self.ctx, data)
+        return m2.digest_update(self.ctx, util.py3bytes(data))
 
     def final(self):
         return m2.digest_final(self.ctx)
@@ -133,7 +133,7 @@ class Cipher:
             self.m2_cipher_ctx_free(self.ctx)
 
     def update(self, data):
-        return m2.cipher_update(self.ctx, data)
+        return m2.cipher_update(self.ctx, util.py3bytes(data))
 
     def final(self):
         return m2.cipher_final(self.ctx)
