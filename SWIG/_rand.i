@@ -58,7 +58,11 @@ PyObject *rand_bytes(int n) {
         return NULL;
     }
     if (RAND_bytes(blob, n)) {
+#if PY_MAJOR_VERSION >= 3
+        obj = PyBytes_FromStringAndSize(blob, n);
+#else
         obj = PyString_FromStringAndSize(blob, n);
+#endif // PY_MAJOR_VERSION >= 3
         PyMem_Free(blob);
         return obj;
     } else {
@@ -89,7 +93,12 @@ PyObject *rand_pseudo_bytes(int n) {
         Py_INCREF(Py_None);
         return Py_None;
     } else {
-        PyTuple_SET_ITEM(tuple, 0, PyString_FromStringAndSize((char*)blob, n));
+#if PY_MAJOR_VERSION >= 3
+        PyTuple_SET_ITEM(tuple, 0, PyBytes_FromStringAndSize((char*)blob, n));
+#else
+         PyTuple_SET_ITEM(tuple, 0, PyString_FromStringAndSize((char*)blob, n));
+#endif // PY_MAJOR_VERSION >= 3
+
         PyMem_Free(blob);
         PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong((long)ret));
         return tuple;
