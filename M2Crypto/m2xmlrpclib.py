@@ -8,10 +8,17 @@ import base64
 
 import M2Crypto
 
-from M2Crypto import SSL, httpslib, m2urllib
-from xmlrpclib import *  # noqa
+from M2Crypto import SSL, httpslib, m2urllib, six
 
-__version__ = M2Crypto.version
+# six.moves doesn't support star imports
+if six.PY3:
+    from xmlrpc.client import *  # noqa
+else:
+    from xmlrpclib import *  # noqa
+
+__version__ = M2Crypto.__version__
+
+
 
 class SSL_Transport(Transport):  # noqa
 
@@ -30,7 +37,8 @@ class SSL_Transport(Transport):  # noqa
         # Handle username and password.
         user_passwd, host_port = m2urllib.splituser(host)
         _host, _port = m2urllib.splitport(host_port)
-        h = httpslib.HTTPS(_host, int(_port), ssl_context=self.ssl_ctx)
+        h = httpslib.HTTPSConnection(_host, int(_port),
+                                     ssl_context=self.ssl_ctx)
         if verbose:
             h.set_debuglevel(1)
 
