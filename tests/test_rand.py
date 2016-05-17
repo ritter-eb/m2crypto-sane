@@ -14,6 +14,7 @@ except ImportError:
 
 from M2Crypto import Rand
 
+
 class RandTestCase(unittest.TestCase):
     def test_bytes(self):
         with self.assertRaises(MemoryError):
@@ -45,6 +46,31 @@ class RandTestCase(unittest.TestCase):
         self.assertIsNone(Rand.rand_add(os.urandom(2), 0.5))
         Rand.rand_add(os.urandom(2), -0.5)
         Rand.rand_add(os.urandom(2), 5000.0)
+
+
+class DummyRandTestCase(unittest.TestCase):
+    def test_bytes(self):
+        with self.assertRaises(MemoryError):
+            Rand.dummyrand_bytes(-1)
+        self.assertEqual(Rand.dummyrand_bytes(0), '')
+        self.assertEqual(len(Rand.dummyrand_bytes(1)), 1)
+
+    def test_load_save(self):
+        try:
+            os.remove('tests/randpool.dat')
+        except OSError:
+            pass
+        self.assertEqual(Rand.load_file('tests/randpool.dat', -1), 0)
+        self.assertEqual(Rand.save_file('tests/randpool.dat'), 1024)
+        self.assertEqual(Rand.load_file('tests/randpool.dat', -1), 1024)
+
+    def test_seed_add(self):
+        self.assertIsNone(Rand.dummyrand_seed(os.urandom(1024)))
+
+        # XXX Should there be limits on the entropy parameter?
+        self.assertIsNone(Rand.dummyrand_add(os.urandom(2), 0.5))
+        Rand.dummyrand_add(os.urandom(2), -0.5)
+        Rand.dummyrand_add(os.urandom(2), 5000.0)
 
 
 def suite():
