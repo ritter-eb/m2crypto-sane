@@ -5,7 +5,7 @@ from __future__ import absolute_import, print_function
 Copyright (c) 1999-2002 Ng Pheng Siong. All rights reserved."""
 
 # Python
-import six.moves.socketserver as socketserver
+import M2Crypto.six.moves.socketserver as socketserver
 
 # M2Crypto
 from M2Crypto.SSL import SSLError

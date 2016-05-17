@@ -10,7 +10,7 @@ Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 
 from M2Crypto import SSL, httpslib, six
 
-from six.moves.urllib_response import addinfourl
+from M2Crypto.six.moves.urllib_response import addinfourl
 
 # six.moves doesn't support star imports
 if six.PY3:

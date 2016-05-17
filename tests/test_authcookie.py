@@ -13,7 +13,7 @@ except ImportError:
 
 from M2Crypto import EVP, Rand, util
 from M2Crypto.AuthCookie import AuthCookie, AuthCookieJar, mix, unmix, unmix3
-from six.moves.http_cookies import SimpleCookie
+from M2Crypto.six.moves.http_cookies import SimpleCookie
 
 
 class AuthCookieTestCase(unittest.TestCase):

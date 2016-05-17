@@ -9,8 +9,8 @@ import logging
 import socket
 
 from M2Crypto import SSL, six
-from six.moves.urllib_parse import urlsplit, urlunsplit
-from six.moves.http_client import HTTPS_PORT  # not imported with just '*'
+from M2Crypto.six.moves.urllib_parse import urlsplit, urlunsplit
+from M2Crypto.six.moves.http_client import HTTPS_PORT  # not imported with just '*'
 
 # six.moves doesn't support star imports
 if six.PY3:

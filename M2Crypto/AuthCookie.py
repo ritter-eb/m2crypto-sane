@@ -11,7 +11,7 @@ import time
 # M2Crypto
 from M2Crypto import Rand, m2, util
 
-from six.moves.http_cookies import SimpleCookie
+from M2Crypto.six.moves.http_cookies import SimpleCookie
 
 
 _MIX_FORMAT = 'exp=%s&data=%s&digest='

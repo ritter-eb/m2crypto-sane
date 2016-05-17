@@ -17,8 +17,8 @@ import socket
 
 from M2Crypto import SSL, httpslib, six
 
-from six.moves.urllib_parse import urldefrag, urlparse as url_parse
-from six.moves.urllib_response import addinfourl
+from M2Crypto.six.moves.urllib_parse import urldefrag, urlparse as url_parse
+from M2Crypto.six.moves.urllib_response import addinfourl
 
 # six.moves doesn't support star imports
 if six.PY3:
