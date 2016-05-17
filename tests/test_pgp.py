@@ -4,13 +4,12 @@
 
 Copyright (c) 1999 Ng Pheng Siong. All rights reserved."""
 
-from cStringIO import StringIO
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
 
-from M2Crypto import EVP, PGP
+from M2Crypto import EVP, PGP, six
 
 
 class PGPTestCase(unittest.TestCase):
@@ -23,7 +22,7 @@ class PGPTestCase(unittest.TestCase):
         s1.update(daft_pkt)
         s1f = repr(s1.final())
 
-        buf = StringIO(daft_pkt)
+        buf = six.moves.cStringIO(daft_pkt)
         ps = PGP.packet_stream(buf)
         dift_pkt = ps.read()
         s2 = EVP.MessageDigest('sha1')

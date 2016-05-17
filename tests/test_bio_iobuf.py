@@ -4,13 +4,13 @@
 
 Copyright (c) 2000 Ng Pheng Siong. All rights reserved."""
 
-from cStringIO import StringIO
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
 
 import M2Crypto
+from M2Crypto import six
 from M2Crypto.BIO import IOBuffer, MemoryBuffer
 
 class IOBufferTestCase(unittest.TestCase):
@@ -49,7 +49,7 @@ class IOBufferTestCase(unittest.TestCase):
         self.assertEqual(out, self.data)
 
     def test_readline(self):
-        buf = StringIO()
+        buf = six.moves.cStringIO()
         mb = MemoryBuffer(self.data)
         io = IOBuffer(mb)
         while 1:
@@ -61,7 +61,7 @@ class IOBufferTestCase(unittest.TestCase):
         self.assertEqual(buf.getvalue(), self.data)
 
     def test_readlines(self):
-        buf = StringIO()
+        buf = six.moves.cStringIO()
         mb = MemoryBuffer(self.data)
         io = IOBuffer(mb)
         lines = io.readlines()

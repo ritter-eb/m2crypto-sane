@@ -22,10 +22,7 @@ Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 import struct
 import sys
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from M2Crypto import six
 
 # Python 2 has int() and long().
 # Python 3 and higher only has int().
@@ -53,7 +50,7 @@ class packet:
 
         self.ctb = ctb
         if body is not None:
-            self.body = StringIO(body)
+            self.body = six.moves.cStringIO(body)
         else:
             self.body = None
 
@@ -121,7 +118,7 @@ class public_key_packet(packet):
 
     def pack(self):
         if self.body is None:
-            self.body = StringIO()
+            self.body = six.moves.cStringIO()
             self.body.write(self._version)
             self.body.write(self._timestamp)
             self.body.write(self._validity)
@@ -155,7 +152,7 @@ class userid_packet(packet):
 
     def pack(self):
         if self.body is None:
-            self.body = StringIO()
+            self.body = six.moves.cStringIO()
             self.body.write(chr(len(self._userid)))
             self.body.write(self._userid)
             self.body = self.body.getvalue()
@@ -173,7 +170,7 @@ class comment_packet(packet):
 
     def pack(self):
         if self.body is None:
-            self.body = StringIO()
+            self.body = six.moves.cStringIO()
             self.body.write(chr(len(self.comment)))
             self.body.write(self.comment)
             self.body = self.body.getvalue()
@@ -196,7 +193,7 @@ class signature_packet(packet):
 
     def pack(self):
         if self.body is None:
-            self.body = StringIO()
+            self.body = six.moves.cStringIO()
             self.body.write(self._version)
             self.body.write(self._len_md_stuff)
             self.body.write(self._classification)
@@ -300,7 +297,7 @@ class compressed_packet(packet):
         import zlib
         decomp = zlib.decompressobj(-13)    # RFC 2440, pg 61.
         # This doubles the memory usage.
-        stream = StringIO(decomp.decompress(self.data))
+        stream = six.moves.cStringIO(decomp.decompress(self.data))
         return stream
 
 

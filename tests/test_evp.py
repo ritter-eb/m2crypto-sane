@@ -8,7 +8,6 @@ Copyright (c) 2004-2007 Open Source Applications Foundation
 Author: Heikki Toivonen
 """
 
-import cStringIO
 import logging
 import sha
 
@@ -283,16 +282,16 @@ class CipherTestCase(unittest.TestCase):
 
         k = EVP.Cipher(algo, 'goethe', '12345678', enc,
                        1, 'sha1', 'saltsalt', 5)
-        pbuf = cStringIO.StringIO(otxt)
-        cbuf = cStringIO.StringIO()
+        pbuf = six.moves.cStringIO(otxt)
+        cbuf = six.moves.cStringIO()
         ctxt = self.cipher_filter(k, pbuf, cbuf)
         pbuf.close()
         cbuf.close()
 
         j = EVP.Cipher(algo, 'goethe', '12345678', dec,
                        1, 'sha1', 'saltsalt', 5)
-        pbuf = cStringIO.StringIO()
-        cbuf = cStringIO.StringIO(ctxt)
+        pbuf = six.moves.cStringIO()
+        cbuf = six.moves.cStringIO(ctxt)
         ptxt = self.cipher_filter(j, cbuf, pbuf)
         pbuf.close()
         cbuf.close()
@@ -377,8 +376,8 @@ class CipherTestCase(unittest.TestCase):
             # encrypt
             k = EVP.Cipher(alg='aes_128_cbc', key=unhexlify(test['KEY']),
                            iv=unhexlify(test['IV']), op=enc)
-            pbuf = cStringIO.StringIO(test['PT'])
-            cbuf = cStringIO.StringIO()
+            pbuf = six.moves.cStringIO(test['PT'])
+            cbuf = six.moves.cStringIO()
             ciphertext = hexlify(self.cipher_filter(k, pbuf, cbuf))
             cipherpadding = ciphertext[len(test['PT']) * 2:]
             # Remove the padding from the end
@@ -390,8 +389,8 @@ class CipherTestCase(unittest.TestCase):
             # decrypt
             j = EVP.Cipher(alg='aes_128_cbc', key=unhexlify(test['KEY']),
                            iv=unhexlify(test['IV']), op=dec)
-            pbuf = cStringIO.StringIO()
-            cbuf = cStringIO.StringIO(unhexlify(test['CT'] + cipherpadding))
+            pbuf = six.moves.cStringIO()
+            cbuf = six.moves.cStringIO(unhexlify(test['CT'] + cipherpadding))
             plaintext = self.cipher_filter(j, cbuf, pbuf)
             pbuf.close()
             cbuf.close()
@@ -402,8 +401,8 @@ class CipherTestCase(unittest.TestCase):
             # encrypt
             k = EVP.Cipher(alg='aes_128_cbc', key=unhexlify(test['KEY']),
                            iv=unhexlify(test['IV']), op=enc, padding=False)
-            pbuf = cStringIO.StringIO(test['PT'])
-            cbuf = cStringIO.StringIO()
+            pbuf = six.moves.cStringIO(test['PT'])
+            cbuf = six.moves.cStringIO()
             ciphertext = hexlify(self.cipher_filter(k, pbuf, cbuf))
             pbuf.close()
             cbuf.close()
@@ -412,8 +411,8 @@ class CipherTestCase(unittest.TestCase):
             # decrypt
             j = EVP.Cipher(alg='aes_128_cbc', key=unhexlify(test['KEY']),
                            iv=unhexlify(test['IV']), op=dec, padding=False)
-            pbuf = cStringIO.StringIO()
-            cbuf = cStringIO.StringIO(unhexlify(test['CT']))
+            pbuf = six.moves.cStringIO()
+            cbuf = six.moves.cStringIO(unhexlify(test['CT']))
             plaintext = self.cipher_filter(j, cbuf, pbuf)
             pbuf.close()
             cbuf.close()
@@ -469,8 +468,8 @@ class CipherTestCase(unittest.TestCase):
 
         def decrypt(ciphertext, key, iv, alg='aes_256_cbc'):
             cipher = EVP.Cipher(alg=alg, key=key, iv=iv, op=0)
-            pbuf = cStringIO.StringIO()
-            cbuf = cStringIO.StringIO(ciphertext)
+            pbuf = six.moves.cStringIO()
+            cbuf = six.moves.cStringIO(ciphertext)
             plaintext = _cipherFilter(cipher, cbuf, pbuf)
             pbuf.close()
             cbuf.close()
