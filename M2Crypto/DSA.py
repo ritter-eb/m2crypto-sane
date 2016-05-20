@@ -133,9 +133,9 @@ class DSA:
         @param filename: Save the DSA parameters to this file.
         @return:         1 (true) if successful
         """
-        bio = BIO.openfile(filename, 'wb')
-        ret = m2.dsa_write_params_bio(self.dsa, bio._ptr())
-        bio.close()
+        with BIO.openfile(filename, 'wb') as bio:
+            ret = m2.dsa_write_params_bio(self.dsa, bio._ptr())
+
         return ret
 
     def save_params_bio(self, bio):
@@ -159,9 +159,9 @@ class DSA:
                          to encrypt the private key.
         @return:         1 (true) if successful
         """
-        bio = BIO.openfile(filename, 'wb')
-        ret = self.save_key_bio(bio, cipher, callback)
-        bio.close()
+        with BIO.openfile(filename, 'wb') as bio:
+            ret = self.save_key_bio(bio, cipher, callback)
+
         return ret
 
     def save_key_bio(self, bio, cipher='aes_128_cbc',
@@ -195,9 +195,9 @@ class DSA:
                          to this file.
         @return:         1 (true) if successful
         """
-        bio = BIO.openfile(filename, 'wb')
-        ret = self.save_pub_key_bio(bio)
-        bio.close()
+        with BIO.openfile(filename, 'wb') as bio:
+            ret = self.save_pub_key_bio(bio)
+
         return ret
 
     def save_pub_key_bio(self, bio):
@@ -337,9 +337,9 @@ def load_params(file, callback=util.passphrase_callback):
                      passphrase-protected.
     @return:         instance of DSA.
     """
-    bio = BIO.openfile(file)
-    ret = load_params_bio(bio, callback)
-    bio.close()
+    with BIO.openfile(file) as bio:
+        ret = load_params_bio(bio, callback)
+
     return ret
 
 
@@ -375,9 +375,9 @@ def load_key(file, callback=util.passphrase_callback):
                      passphrase-protected.
     @return:         instance of DSA.
     """
-    bio = BIO.openfile(file)
-    ret = load_key_bio(bio, callback)
-    bio.close()
+    with BIO.openfile(file) as bio:
+        ret = load_key_bio(bio, callback)
+
     return ret
 
 
@@ -434,9 +434,9 @@ def load_pub_key(file, callback=util.passphrase_callback):
                      passphrase-protected.
     @return:         instance of DSA_pub.
     """
-    bio = BIO.openfile(file)
-    ret = load_pub_key_bio(bio, callback)
-    bio.close()
+    with BIO.openfile(file) as bio:
+        ret = load_pub_key_bio(bio, callback)
+
     return ret
 
 

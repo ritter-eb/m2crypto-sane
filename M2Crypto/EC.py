@@ -229,13 +229,13 @@ class EC:
                 raise ValueError('not such cipher %s' % cipher)
             return m2.ec_key_write_bio(self.ec, bio._ptr(), ciph(), callback)
 
-    def save_key(self, filename, cipher='aes_128_cbc',
+    def save_key(self, file, cipher='aes_128_cbc',
                  callback=util.passphrase_callback):
         # type: (AnyStr, AnyStr, Callable) -> int
         """
-        Save the key pair to a filename in PEM format.
+        Save the key pair to a file in PEM format.
 
-        @param filename: Name of filename to save key to.
+        @param file: Name of filename to save key to.
 
         @param cipher: Symmetric cipher to protect the key. The default
         cipher is 'aes_128_cbc'. If cipher is None, then the key is saved
@@ -257,14 +257,14 @@ class EC:
         """
         return m2.ec_key_write_pubkey(self.ec, bio._ptr())
 
-    def save_pub_key(self, filename):
+    def save_pub_key(self, file):
         # type: (unicode) -> int
         """
         Save the public key to a filename in PEM format.
 
-        @param filename: Name of filename to save key to.
+        @param file: Name of filename to save key to.
         """
-        with BIO.openfile(filename, 'wb') as bio:
+        with BIO.openfile(file, 'wb') as bio:
             return m2.ec_key_write_pubkey(self.ec, bio._ptr())
 
     def _check_key_type(self):
@@ -330,7 +330,7 @@ def load_key(file, callback=util.passphrase_callback):
     """
     Factory function that instantiates a EC object.
 
-    @param filename: Names the filename that contains the PEM representation
+    @param file: Names the filename that contains the PEM representation
     of the EC key pair.
 
     @param callback: Python callback object that will be invoked
@@ -354,16 +354,16 @@ def load_key_bio(bio, callback=util.passphrase_callback):
     return EC(m2.ec_key_read_bio(bio._ptr(), callback), 1)
 
 
-def load_pub_key(filename):
+def load_pub_key(file):
     # type: (unicode) -> EC_pub
     """
     Load an EC public key from filename.
 
-    @param filename: Name of filename containing EC public key in PEM format.
+    @param file: Name of filename containing EC public key in PEM format.
 
     @return: M2Crypto.EC.EC_pub object.
     """
-    with BIO.openfile(filename) as bio:
+    with BIO.openfile(file) as bio:
         return load_pub_key_bio(bio)
 
 
