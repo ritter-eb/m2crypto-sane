@@ -7,10 +7,12 @@ Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 from M2Crypto import BIO, Err, m2
 from M2Crypto.util import genparam_callback
 
+
 class DHError(Exception):
     pass
 
 m2.dh_init(DHError)
+
 
 class DH:
 
@@ -75,8 +77,8 @@ def gen_params(plen, g, callback=genparam_callback):
 
 
 def load_params(file):
-    bio = BIO.openfile(file)
-    return load_params_bio(bio)
+    with BIO.openfile(file) as bio:
+        return load_params_bio(bio)
 
 
 def load_params_bio(bio):

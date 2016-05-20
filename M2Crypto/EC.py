@@ -255,8 +255,8 @@ class EC:
         @type file: string
         @param file: Name of file to save key to.
         """
-        bio = BIO.openfile(file, 'wb')
-        return m2.ec_key_write_pubkey(self.ec, bio._ptr())
+        with BIO.openfile(file, 'wb') as bio:
+            return m2.ec_key_write_pubkey(self.ec, bio._ptr())
 
     def _check_key_type(self):
         return m2.ec_key_type_check(self.ec)
@@ -347,8 +347,8 @@ def load_pub_key(file):
     @rtype: M2Crypto.EC.EC_pub
     @return: M2Crypto.EC.EC_pub object.
     """
-    bio = BIO.openfile(file)
-    return load_pub_key_bio(bio)
+    with BIO.openfile(file) as bio:
+        return load_pub_key_bio(bio)
 
 
 def load_pub_key_bio(bio):
