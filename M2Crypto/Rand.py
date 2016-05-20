@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 
-from M2Crypto import m2
+from M2Crypto import m2, util
 
 __all__ = ['rand_seed', 'rand_add', 'load_file', 'save_file', 'rand_bytes',
            'rand_pseudo_bytes', 'rand_file_name', 'rand_status']
@@ -15,5 +15,8 @@ load_file = m2.rand_load_file
 save_file = m2.rand_save_file
 rand_bytes = m2.rand_bytes
 rand_pseudo_bytes = m2.rand_pseudo_bytes
-rand_file_name = m2.rand_file_name
 rand_status = m2.rand_status
+
+
+def rand_file_name():
+    return util.py3str(m2.rand_file_name())
