@@ -11,6 +11,8 @@ from M2Crypto import SSL
 from urlparse import urlsplit, urlunsplit
 from httplib import *  # noqa
 from httplib import HTTPS_PORT  # This is not imported with just '*'
+from typing import Any, Callable, Optional  # noqa
+
 
 class HTTPSConnection(HTTPConnection):
 
@@ -21,7 +23,24 @@ class HTTPSConnection(HTTPConnection):
     default_port = HTTPS_PORT
 
     def __init__(self, host, port=None, strict=None, **ssl):
-        self.session = None
+        # type: (str, Optional[int], Optional[bool], **dict) -> None
+        """
+        Represents one transaction with an HTTP server over the SSL
+        connection.
+
+        @param host: host name
+        @param port: port number
+        @param strict: if switched on, it raises BadStatusLine to be
+                       raised if the status line can't be parsed as
+                       a valid HTTP/1.0 or 1.1 status line.
+        @param ssl: dict with all remaining named real parameters of the
+                    function. Specifically, ``ssl_context`` is expected
+                    to be included with SSL.Context; if it is not
+                    default ``'sslv23'`` is substituted).
+        """
+        self.session = None  # type: bytes
+        self.host = host
+        self.port = port
         keys = ssl.keys()
         try:
             keys.remove('key_file')
@@ -45,6 +64,7 @@ class HTTPSConnection(HTTPConnection):
         HTTPConnection.__init__(self, host, port, strict)
 
     def connect(self):
+        # type: () -> None
         error = None
         # We ignore the returned sockaddr because SSL.Connection.connect needs
         # a host name.
@@ -74,6 +94,7 @@ class HTTPSConnection(HTTPConnection):
         raise error
 
     def close(self):
+        # type: () -> None
         # This kludges around line 545 of httplib.py,
         # which closes the connection in this object;
         # the connection remains open in the response
@@ -91,28 +112,15 @@ class HTTPSConnection(HTTPConnection):
         pass
 
     def get_session(self):
+        # type: () -> SSL.Session.Session
         return self.sock.get_session()
 
     def set_session(self, session):
+        # type: (SSL.Session.Session) -> None
         self.session = session
 
 
-class HTTPS(HTTP):
-
-    _connection_class = HTTPSConnection
-
-    def __init__(self, host='', port=None, strict=None, **ssl):
-        HTTP.__init__(self, host, port, strict)
-        try:
-            self.ssl_ctx = ssl['ssl_context']
-        except KeyError:
-            self.ssl_ctx = SSL.Context('sslv23')
-        assert isinstance(self._conn, HTTPSConnection)
-        self._conn.ssl_ctx = self.ssl_ctx
-
-
 class ProxyHTTPSConnection(HTTPSConnection):
-
     """
     An HTTPS Connection that uses a proxy and the CONNECT request.
 
@@ -131,21 +139,35 @@ class ProxyHTTPSConnection(HTTPSConnection):
 
     def __init__(self, host, port=None, strict=None, username=None,
                  password=None, **ssl):
+        # type: (str, Optional[int], Optional[bool], Optional[str], Optional[str], **dict) -> None
         """
         Create the ProxyHTTPSConnection object.
 
-        host and port are the hostname and port number of the proxy server.
+        @param host: host name of the proxy server
+        @param port: port number of the proxy server
+        @param strict: if switched on, it raises BadStatusLine to be
+                       raised if the status line can't be parsed as
+                       a valid HTTP/1.0 or 1.1 status line.
+        @param username: username on the proxy server, when required
+        @param password: password on the proxy server, when required
+        @param ssl: dict with all remaining named real parameters of the
+                    function. Specifically, ``ssl_context`` is expected
+                    to be included with SSL.Context; if it is not
+                    default ``'sslv23'`` is substituted).
         """
         HTTPSConnection.__init__(self, host, port, strict, **ssl)
 
         self._username = username
         self._password = password
-        self._proxy_auth = None
-        self._proxy_UA = None
+        self._proxy_auth = None  # type: str
+        self._proxy_UA = None  # type: str
 
     def putrequest(self, method, url, skip_host=0, skip_accept_encoding=0):
-        # putrequest is called before connect, so can interpret url and get
-        # real host/port to be used to make CONNECT request to proxy
+        # type: (AnyStr, AnyStr, Optional[int], Optional[int]) -> None
+        """
+        putrequest is called before connect, so can interpret url and get
+        real host/port to be used to make CONNECT request to proxy
+        """
         proto, netloc, path, query, fragment = urlsplit(url)
         if not proto:
             raise ValueError("unknown URL type: %s" % url)
@@ -173,6 +195,7 @@ class ProxyHTTPSConnection(HTTPSConnection):
                                    skip_accept_encoding)
 
     def putheader(self, header, value):
+        # type: (AnyStr, AnyStr) -> None
         # Store the auth header if passed in.
         if header.lower() == self._UA_HEADER.lower():
             self._proxy_UA = value
@@ -182,6 +205,7 @@ class ProxyHTTPSConnection(HTTPSConnection):
             HTTPSConnection.putheader(self, header, value)
 
     def endheaders(self, *args, **kwargs):
+        # type: (*Any, **Any) -> None
         # We've recieved all of hte headers. Use the supplied username
         # and password for authorization, possibly overriding the authstring
         # supplied in the headers.
@@ -191,6 +215,7 @@ class ProxyHTTPSConnection(HTTPSConnection):
         HTTPSConnection.endheaders(self, *args, **kwargs)
 
     def connect(self):
+        # type: () -> None
         HTTPConnection.connect(self)
 
         # send proxy CONNECT request
@@ -207,6 +232,7 @@ class ProxyHTTPSConnection(HTTPSConnection):
         self._start_ssl()
 
     def _get_connect_msg(self):
+        # type: () -> str
         """ Return an HTTP CONNECT request to send to the proxy. """
         msg = "CONNECT %s:%d HTTP/1.1\r\n" % (self._real_host, self._real_port)
         msg = msg + "Host: %s:%d\r\n" % (self._real_host, self._real_port)
@@ -218,6 +244,7 @@ class ProxyHTTPSConnection(HTTPSConnection):
         return msg
 
     def _start_ssl(self):
+        # type: () -> None
         """ Make this connection's socket SSL-aware. """
         self.sock = SSL.Connection(self.ssl_ctx, self.sock)
         self.sock.setup_ssl()
@@ -225,6 +252,7 @@ class ProxyHTTPSConnection(HTTPSConnection):
         self.sock.connect_ssl()
 
     def _encode_auth(self):
+        # type: () -> Optional[str]
         """ Encode the username and password for use in the auth header. """
         if not (self._username and self._password):
             return None
