@@ -8,6 +8,7 @@ from M2Crypto.PGP.PublicKey import *  # noqa
 from M2Crypto.PGP.constants import *  # noqa
 from M2Crypto.PGP.packet import *  # noqa
 
+
 class PublicKeyRing:
     def __init__(self, keyring):
         import warnings
@@ -26,27 +27,27 @@ class PublicKeyRing:
         curr_pub = None
         curr_index = -1
 
-        ps = packet_stream(self._keyring)
+        ps = packet.packet_stream(self._keyring)
         while 1:
             pkt = ps.read()
 
             if pkt is None:
                 break
 
-            elif isinstance(pkt, public_key_packet):
+            elif isinstance(pkt, packet.public_key_packet):
                 curr_index = curr_index + 1
-                curr_pub = PublicKey(pkt)
+                curr_pub = PublicKey.PublicKey(pkt)
                 self._pubkey.append(curr_pub)
                 # self._keyid[curr_pub.keyid()] = (curr_pub, curr_index)
 
-            elif isinstance(pkt, userid_packet):
+            elif isinstance(pkt, packet.userid_packet):
                 if curr_pub is None:
                     self._spurious.append(pkt)
                 else:
                     curr_pub.add_userid(pkt)
                     self._userid[pkt.userid()] = (curr_pub, curr_index)
 
-            elif isinstance(pkt, signature_packet):
+            elif isinstance(pkt, packet.signature_packet):
                 if curr_pub is None:
                     self._spurious.append(pkt)
                 else:

@@ -5,11 +5,14 @@ from __future__ import absolute_import
 Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 
 from M2Crypto.PGP.RSA import new_pub_key
+from M2Crypto.PGP.packet import public_key_packet  # noqa
 from M2Crypto.PGP.constants import *  # noqa
 from M2Crypto.PGP.packet import *  # noqa
 
+
 class PublicKey:
     def __init__(self, pubkey_pkt):
+        # type: (public_key_packet) -> None
         import warnings
         warnings.warn(
             'Deprecated. No maintainer for PGP. If you use this, ' +
@@ -18,14 +21,15 @@ class PublicKey:
 
         self._pubkey_pkt = pubkey_pkt
         self._pubkey = new_pub_key((pubkey_pkt._e, pubkey_pkt._n))
-        self._userid = {}
-        self._signature = {}
+        self._userid = {}  # type: dict
+        self._signature = {}  # type: dict
 
     def keyid(self):
+        # type: () -> bytes
         return self._pubkey.n[-8:]
 
     def add_userid(self, u_pkt):
-        assert isinstance(u_pkt, userid_packet)
+        assert isinstance(u_pkt, packet.userid_packet)
         self._userid[u_pkt.userid()] = u_pkt
 
     def remove_userid(self, userid):

@@ -20,31 +20,22 @@ Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 # Be lazy in what you eval.
 
 import struct
-import sys
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
-# Python 2 has int() and long().
-# Python 3 and higher only has int().
-# Work around this.
-if sys.version_info > (3,):
-    long = int
+from io import StringIO
 
 from M2Crypto import EVP, RSA  # noqa
 from M2Crypto.util import octx_to_num
-
 from M2Crypto.PGP.constants import *  # noqa
+from typing import AnyStr, Optional, Tuple  # noqa
 
 _OK_VERSION = ('\002', '\003')
 _OK_VALIDITY = ('\000',)
 _OK_PKC = ('\001',)
 
 
-class packet:
+class packet:  # noqa
     def __init__(self, ctb, body=None):
+        # type: (object, AnyStr) -> None
         import warnings
         warnings.warn(
             'Deprecated. No maintainer for PGP. If you use this, ' +
@@ -58,52 +49,61 @@ class packet:
             self.body = None
 
     def validate(self):
+        # type: () -> int
         return 1
 
     def pack(self):
+        # type: () -> None
         raise NotImplementedError('%s.pack(): abstract method' %
                                   (self.__class__,))
 
     def version(self):
+        # type: () -> Optional[int]
         if hasattr(self, '_version'):
             return ord(self._version)
         else:
             return None
 
     def timestamp(self):
+        # type: () -> Optional[int]
         if hasattr(self, '_timestamp'):
             return struct.unpack('>L', self._timestamp)[0]
         else:
             return None
 
     def validity(self):
+        # type: () -> Optional[int]
         if hasattr(self, '_validity'):
             return struct.unpack('>H', self._validity)[0]
         else:
             return None
 
     def pkc(self):
+        # type: () -> Optional[bytes]
         if hasattr(self, '_pkc'):
             return self._pkc
         else:
             return None
 
     def _llf(self, lenf):
+        # type: (int) -> Tuple[int, int]
         if lenf < 256:
             return (0, chr(lenf))
         elif lenf < 65536:
             return (1, struct.pack('>H', lenf))
         else:
-            assert lenf < long(2)**32
+            assert lenf < 2**32
             return (2, struct.pack('>L', lenf))
 
     def _ctb(self, llf):
+        # type: (int) -> int
         ctbv = _FACTORY[self.__class__]
         return chr((1 << 7) | (ctbv << 2) | llf)
 
 
-class public_key_packet(packet):
+class public_key_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
+        # type: (int, AnyStr) -> None
         packet.__init__(self, ctb, body)
         if self.body is not None:
             self._version = self.body.read(1)
@@ -120,6 +120,7 @@ class public_key_packet(packet):
             self._e = self.body.read(elen)
 
     def pack(self):
+        # type: () -> str
         if self.body is None:
             self.body = StringIO()
             self.body.write(self._version)
@@ -136,19 +137,22 @@ class public_key_packet(packet):
         return '%s%s%s' % (ctb, lenf, self.body)
 
     def pubkey(self):
+        # type: () -> bytes
         return self._pubkey.pub()
 
 
-class trust_packet(packet):
+class trust_packet(packet):  # noqa
     # This implementation neither interprets nor emits trust packets.
     def __init__(self, ctb, body=None):
+        # type: (int, AnyStr) -> None
         packet.__init__(self, ctb, body)
         if body is not None:
             self.trust = self.body.read(1)
 
 
-class userid_packet(packet):
+class userid_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
+        # type: (int, AnyStr) -> None
         packet.__init__(self, ctb, body)
         if body is not None:
             self._userid = body
@@ -165,7 +169,7 @@ class userid_packet(packet):
         return self._userid
 
 
-class comment_packet(packet):
+class comment_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
         packet.__init__(self, ctb, body)
         if body is not None:
@@ -180,7 +184,7 @@ class comment_packet(packet):
         return self.ctb + self.body
 
 
-class signature_packet(packet):
+class signature_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
         packet.__init__(self, ctb, body)
         if body is not None:
@@ -218,7 +222,7 @@ class signature_packet(packet):
             return None
 
 
-class private_key_packet(packet):
+class private_key_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
         packet.__init__(self, ctb, body)
         if body is not None:
@@ -243,9 +247,9 @@ class private_key_packet(packet):
 
             for param in ['d', 'p', 'q', 'u']:
                 _plen = self.body.read(2)
-                setattr(self, '_'+param+'len', _plen)
+                setattr(self, '_' + param + 'len', _plen)
                 plen = (struct.unpack('>H', _plen)[0] + 7) / 8
-                setattr(self, '_'+param, self.body.read(plen))
+                setattr(self, '_' + param, self.body.read(plen))
 
             self._cksum = self.body.read(2)
 
@@ -253,7 +257,7 @@ class private_key_packet(packet):
         return ord(self._cipher)
 
 
-class cke_packet(packet):
+class cke_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
         packet.__init__(self, ctb, body)
         if body is not None:
@@ -262,7 +266,7 @@ class cke_packet(packet):
             self._ctxt = self.body.read()
 
 
-class pke_packet(packet):
+class pke_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
         packet.__init__(self, ctb, body)
         if body is not None:
@@ -274,7 +278,7 @@ class pke_packet(packet):
             self._dek = octx_to_num(self.body.read(deklen))
 
 
-class literal_packet(packet):
+class literal_packet(packet):  # noqa
     def __init__(self, ctb, body=None):
         packet.__init__(self, ctb, body)
         if body is not None:
@@ -285,7 +289,7 @@ class literal_packet(packet):
             # self.data = self.body.read()
 
 
-class compressed_packet(packet):
+class compressed_packet(packet):  # noqa
     def __init__(self, ctb, stream):
         packet.__init__(self, ctb, '')
         if body is not None:
@@ -330,7 +334,7 @@ _FACTORY = {
 }
 
 
-class packet_stream:
+class packet_stream:  # noqa
     def __init__(self, input):
         self.stream = input
         self.under_current = None
@@ -355,7 +359,7 @@ class packet_stream:
                 raise XXXError
         ctbt = (ctb & 0x3c) >> 2
 
-        if ctbt == CTB_COMPRESSED_DATA:
+        if ctbt == constants.CTB_COMPRESSED_DATA:
             self.under_current = self.stream
             cp = compressed_packet(ctb0, self.stream)
             self.stream = cp.uncompress()
@@ -385,8 +389,10 @@ class packet_stream:
     def count(self):
         return self._count
 
+
 def is_ctb(ctb):
     return ctb & 0xc0
+
 
 def make_ctb(value, llf):
     return chr((1 << 7) | (value << 2) | llf)
