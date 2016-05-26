@@ -7,8 +7,11 @@ Copyright (c) 2005 Open Source Applications Foundation. All rights reserved.
 """
 
 from M2Crypto import m2
+from typing import Optional  # noqa
+
 
 def rand(bits, top=-1, bottom=0):
+    # type: (int, int, int) -> Optional[int]
     """
     Generate cryptographically strong random number.
 
@@ -22,6 +25,7 @@ def rand(bits, top=-1, bottom=0):
 
 
 def rand_range(range):
+    # type: (int) -> int
     """
     Generate a random number in a range.
 
@@ -32,17 +36,17 @@ def rand_range(range):
 
 
 def randfname(length):
+    # type: (int) -> str
     """
     Return a random filename, which is simply a string where all
     the characters are from the set [a-zA-Z0-9].
 
     @param length: Length of filename to return.
-    @type length:  int
     @return:       random filename string
     """
     letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890'
     lettersLen = len(letters)
-    fname = []
+    fname = []  # type: list
     for x in range(length):
         fname += [letters[m2.bn_rand_range(lettersLen)]]
 
