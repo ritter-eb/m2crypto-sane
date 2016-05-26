@@ -10,21 +10,28 @@ Copyright 2008 Heikki Toivonen. All rights reserved.
 __all__ = ['SSLVerificationError', 'NoCertificate', 'WrongCertificate',
            'WrongHost', 'Checker']
 
-from M2Crypto import m2
-import socket
 import re
+import socket
+
+from M2Crypto import m2, util
+from typing import AnyStr  # noqa
+
 
 class SSLVerificationError(Exception):
     pass
 
+
 class NoCertificate(SSLVerificationError):
     pass
+
 
 class WrongCertificate(SSLVerificationError):
     pass
 
+
 class WrongHost(SSLVerificationError):
     def __init__(self, expectedHost, actualHost, fieldName='commonName'):
+        # type: (AnyStr, AnyStr, AnyStr) -> None
         """
         This exception will be raised if the certificate returned by the
         peer was issued for a different host than we tried to connect to.
@@ -38,7 +45,9 @@ class WrongHost(SSLVerificationError):
                              should be either 'commonName' or 'subjectAltName'.
         """
         if fieldName not in ('commonName', 'subjectAltName'):
-            raise ValueError('Unknown fieldName, should be either commonName or subjectAltName')
+            raise ValueError(
+                'Unknown fieldName, should be either commonName ' +
+                'or subjectAltName')
 
         SSLVerificationError.__init__(self)
         self.expectedHost = expectedHost
@@ -46,9 +55,10 @@ class WrongHost(SSLVerificationError):
         self.fieldName = fieldName
 
     def __str__(self):
+        # type: () -> bytes
         s = 'Peer certificate %s does not match host, expected %s, got %s' \
-                % (self.fieldName, self.expectedHost, self.actualHost)
-        if isinstance(s, unicode):
+            % (self.fieldName, self.expectedHost, self.actualHost)
+        if hasattr(s, 'encode'):
             s = s.encode('utf8')
         return s
 
@@ -58,11 +68,15 @@ class Checker:
     numericIpMatch = re.compile('^[0-9]+(\.[0-9]+)*$')
 
     def __init__(self, host=None, peerCertHash=None, peerCertDigest='sha1'):
+        # type: (AnyStr, bytes, AnyStr) -> None
         self.host = host
+        if peerCertHash is not None:
+            peerCertHash = util.py3bytes(peerCertHash)
         self.fingerprint = peerCertHash
         self.digest = peerCertDigest
 
     def __call__(self, peerCert, host=None):
+        # type: (bytes, AnyStr) -> bool
         if peerCert is None:
             raise NoCertificate('peer did not return certificate')
 
@@ -71,7 +85,7 @@ class Checker:
 
         if self.fingerprint:
             if self.digest not in ('sha1', 'md5'):
-                raise ValueError('unsupported digest "%s"' %(self.digest))
+                raise ValueError('unsupported digest "%s"' % (self.digest))
 
             if self.digest == 'sha1':
                 expected_len = 40
@@ -82,14 +96,14 @@ class Checker:
 
             if len(self.fingerprint) != expected_len:
                 raise WrongCertificate(
-                        '''peer certificate fingerprint length does not match
-                        fingerprint: {0}
-                        expected = {1}
-                        observed = {2}'''.format(self.fingerprint,
-                            expected_len,
-                            len(self.fingerprint)))
+                    '''peer certificate fingerprint length does not match
+                    fingerprint: {0}
+                    expected = {1}
+                    observed = {2}'''.format(self.fingerprint,
+                                             expected_len,
+                                             len(self.fingerprint)))
 
-            expected_fingerprint = self.fingerprint
+            expected_fingerprint = util.py3str(self.fingerprint)
             observed_fingerprint = peerCert.get_fingerprint(md=self.digest)
             if observed_fingerprint != expected_fingerprint:
                 raise WrongCertificate('''
@@ -118,7 +132,8 @@ class Checker:
             if not hostValidationPassed:
                 hasCommonName = False
                 commonNames = ''
-                for entry in peerCert.get_subject().get_entries_by_nid(m2.NID_commonName):
+                for entry in peerCert.get_subject().get_entries_by_nid(
+                        m2.NID_commonName):
                     hasCommonName = True
                     commonName = entry.get_data().as_text()
                     if not commonNames:
@@ -140,31 +155,42 @@ class Checker:
         return True
 
     def _splitSubjectAltName(self, host, subjectAltName):
+        # type: (AnyStr, AnyStr) -> bool
         """
         >>> check = Checker()
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:my.example.com')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:my.example.com')
         True
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:*.example.com')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:*.example.com')
         True
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:m*.example.com')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:m*.example.com')
         True
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:m*ample.com')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:m*ample.com')
         False
         >>> check.useSubjectAltNameOnly
         True
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:m*ample.com, othername:<unsupported>')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:m*ample.com, othername:<unsupported>')
         False
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:m*ample.com, DNS:my.example.org')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:m*ample.com, DNS:my.example.org')
         False
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:m*ample.com, DNS:my.example.com')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:m*ample.com, DNS:my.example.com')
         True
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='DNS:my.example.com, DNS:my.example.org')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='DNS:my.example.com, DNS:my.example.org')
         True
         >>> check.useSubjectAltNameOnly
         True
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='')
         False
-        >>> check._splitSubjectAltName(host='my.example.com', subjectAltName='othername:<unsupported>')
+        >>> check._splitSubjectAltName(host='my.example.com',
+        ...     subjectAltName='othername:<unsupported>')
         False
         >>> check.useSubjectAltNameOnly
         False
@@ -182,8 +208,8 @@ class Checker:
                     return True
         return False
 
-
     def _match(self, host, certHost):
+        # type: (AnyStr, AnyStr) -> bool
         """
         >>> check = Checker()
         >>> check._match(host='my.example.com', certHost='my.example.com')
@@ -219,7 +245,7 @@ class Checker:
             return False
 
         if self.numericIpMatch.match(host) or \
-               self.numericIpMatch.match(certHost.replace('*', '')):
+                self.numericIpMatch.match(certHost.replace('*', '')):
             # Not sure if * allowed in numeric IP, but think not.
             return False
 
@@ -232,15 +258,17 @@ class Checker:
         # Massage certHost so that it can be used in regex
         certHost = certHost.replace('.', '\.')
         certHost = certHost.replace('*', '[^\.]*')
-        if re.compile('^%s$' %(certHost)).match(host):
+        if re.compile('^%s$' % (certHost)).match(host):
             return True
 
         return False
 
     def _matchIPAddress(self, host, certHost):
+        # type: (AnyStr, AnyStr) -> bool
         """
         >>> check = Checker()
-        >>> check._matchIPAddress(host='my.example.com', certHost='my.example.com')
+        >>> check._matchIPAddress(host='my.example.com',
+        ...     certHost='my.example.com')
         False
         >>> check._matchIPAddress(host='1.2.3.4', certHost='1.2.3.4')
         True

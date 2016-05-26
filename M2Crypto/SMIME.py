@@ -5,7 +5,7 @@ from __future__ import absolute_import
 Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
 
 from M2Crypto import BIO, EVP, Err, X509, m2, util
-from typing import Callable, Optional
+from typing import AnyStr, Callable, Optional  # noqa
 
 PKCS7_TEXT = m2.PKCS7_TEXT  # type: int
 PKCS7_NOCERTS = m2.PKCS7_NOCERTS  # type: int
@@ -76,7 +76,7 @@ class PKCS7:
 
 
 def load_pkcs7(p7file):
-    # type: (str) -> PKCS7
+    # type: (AnyStr) -> PKCS7
     bio = m2.bio_new_file(p7file, 'r')
     if bio is None:
         raise BIO.BIOError(Err.get_error())
@@ -90,6 +90,7 @@ def load_pkcs7(p7file):
         raise PKCS7_Error(Err.get_error())
     return PKCS7(p7_ptr, 1)
 
+
 def load_pkcs7_bio(p7_bio):
     # type: (BIO.BIO) -> PKCS7
     p7_ptr = m2.pkcs7_read_bio(p7_bio._ptr())
@@ -99,7 +100,7 @@ def load_pkcs7_bio(p7_bio):
 
 
 def smime_load_pkcs7(p7file):
-    # type: (str) -> PKCS7
+    # type: (AnyStr) -> PKCS7
     bio = m2.bio_new_file(p7file, 'r')
     if bio is None:
         raise BIO.BIOError(Err.get_error())
@@ -135,7 +136,7 @@ class Cipher:
     """
 
     def __init__(self, algo):
-        # type: (str) -> None
+        # type: (AnyStr) -> None
         cipher = getattr(m2, algo, None)
         if cipher is None:
             raise ValueError('unknown cipher', algo)
@@ -154,7 +155,7 @@ m2.smime_init(SMIME_Error)
 class SMIME:
     def load_key(self, keyfile, certfile=None,
                  callback=util.passphrase_callback):
-        # type: (str, str, Callable) -> None
+        # type: (AnyStr, AnyStr, Callable) -> None
         if certfile is None:
             certfile = keyfile
         self.pkey = EVP.load_key(keyfile, callback)
