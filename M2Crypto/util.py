@@ -20,9 +20,12 @@ log = logging.getLogger('util')
 # Python 2 has int() and long().
 # Python 3 and higher only has int().
 # Work around this.
-if sys.version_info > (3,):
+if six.PY3:
     long = int
     unicode = str
+else:
+    long = long
+    unicode = unicode
 
 
 class UtilError(Exception):
@@ -61,6 +64,10 @@ else:
 
     def py3str(x):
         return x if isinstance(x, str) else x.decode("ascii")
+
+
+def bin_to_hex(b):
+    return py3str(binascii.b2a_base64(b)[:-1])
 
 
 def octx_to_num(x):
