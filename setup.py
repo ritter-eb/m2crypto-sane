@@ -229,7 +229,7 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['contrib', 'docs', 'tests']),
     ext_modules=[m2crypto],
     test_suite='tests.alltests.suite',
-    install_requires=requires_list,
+    install_requires=requires_list + ['typing'],
     cmdclass={
         'build_ext': _M2CryptoBuildExt,
         'build': _M2CryptoBuild,
