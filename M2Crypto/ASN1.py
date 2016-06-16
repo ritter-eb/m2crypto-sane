@@ -65,7 +65,7 @@ class ASN1_String:  # noqa
 
     def __str__(self):
         # type: () -> str
-        return self.__bytes__()
+        return util.py3str(self.__bytes__())
 
     def __del__(self):
         # type: () -> None
@@ -86,7 +86,7 @@ class ASN1_String:  # noqa
         """
         buf = BIO.MemoryBuffer()
         m2.asn1_string_print_ex(buf.bio_ptr(), self.asn1str, flags)
-        return buf.read_all()
+        return util.py3str(buf.read_all())
 
 
 class ASN1_Object:  # noqa
@@ -193,8 +193,8 @@ class ASN1_TIME:  # noqa
         assert m2.asn1_time_type_check(self.asn1_time), \
             "'asn1_time' type error'"
         buf = BIO.MemoryBuffer()
-        m2.asn1_time_print(buf.bio_ptr(), self.asn1_time)
-        return buf.read_all()
+        m2.asn1_utctime_print(buf.bio_ptr(), self.asn1_utctime)
+        return util.py3str(buf.read_all())
 
     def _ptr(self):
         assert m2.asn1_time_type_check(self.asn1_time), \
