@@ -98,7 +98,11 @@ PyObject *rand_pseudo_bytes(int n) {
 #endif // PY_MAJOR_VERSION >= 3
 
         PyMem_Free(blob);
+#if PY_MAJOR_VERSION >= 3
+        PyTuple_SET_ITEM(tuple, 1, PyLong_FromLong((long)ret));
+#else
         PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong((long)ret));
+#endif // PY_MAJOR_VERSION >= 3
         return tuple;
     }
 }

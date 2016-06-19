@@ -213,7 +213,12 @@ int ssl_verify_callback(int ok, X509_STORE_CTX *ctx) {
          */
         cret = 0;
     } else {
+#if PY_MAJOR_VERSION >= 3
+        /* FIXME This is possibly problematic if ret > MAXINT */
+        cret = (int)PyLong_AsLong(ret);
+#else
         cret = (int)PyInt_AsLong(ret);
+#endif // PY_MAJOR_VERSION >= 3
     }
     Py_XDECREF(ret);
     Py_XDECREF(argv);
@@ -648,7 +653,11 @@ http://stackoverflow.com/questions/8195383/pyfile-type-replaced-by
 }
 
 %typemap(out) int {
+#if PY_MAJOR_VERSION >= 3
+    $result=PyLong_FromLong($1);
+#else
     $result=PyInt_FromLong($1);
+#endif // PY_MAJOR_VERSION >= 3
     if (PyErr_Occurred()) SWIG_fail;
 }
 

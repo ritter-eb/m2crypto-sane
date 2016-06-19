@@ -549,16 +549,23 @@ PyObject *ssl_accept(SSL *ssl, double timeout) {
     ssl_err = SSL_get_error(ssl, r);
     Py_END_ALLOW_THREADS
 
-
     switch (ssl_err) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
+#if PY_MAJOR_VERSION >= 3
+            obj = PyLong_FromLong((long)1);
+#else
             obj = PyInt_FromLong((long)1);
+#endif //PY_MAJOR_VERSION >= 3
             break;
         case SSL_ERROR_WANT_WRITE:
         case SSL_ERROR_WANT_READ:
             if (timeout <= 0) {
+#if PY_MAJOR_VERSION >= 3
+                obj = PyLong_FromLong((long)0);
+#else
                 obj = PyInt_FromLong((long)0);
+#endif //PY_MAJOR_VERSION >= 3
                 break;
             }
             if (ssl_sleep_with_timeout(ssl, &tv, timeout, ssl_err) == 0)
@@ -589,16 +596,23 @@ PyObject *ssl_connect(SSL *ssl, double timeout) {
     ssl_err = SSL_get_error(ssl, r);
     Py_END_ALLOW_THREADS
 
-    
     switch (ssl_err) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
+#if PY_MAJOR_VERSION >= 3
+            obj = PyLong_FromLong((long)1);
+#else
             obj = PyInt_FromLong((long)1);
+#endif //PY_MAJOR_VERSION >= 3
             break;
         case SSL_ERROR_WANT_WRITE:
         case SSL_ERROR_WANT_READ:
             if (timeout <= 0) {
+#if PY_MAJOR_VERSION >= 3
+                obj = PyLong_FromLong((long)0);
+#else
                 obj = PyInt_FromLong((long)0);
+#endif //PY_MAJOR_VERSION >= 3
                 break;
             }
             if (ssl_sleep_with_timeout(ssl, &tv, timeout, ssl_err) == 0)
@@ -611,7 +625,6 @@ PyObject *ssl_connect(SSL *ssl, double timeout) {
             obj = NULL;
             break;
     }
-    
     
     return obj;
 }
