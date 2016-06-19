@@ -74,7 +74,7 @@ class EVPTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             EVP.MessageDigest('sha513')
         md = EVP.MessageDigest('sha1')
-        self.assertEqual(md.update('Hello'), 1)
+        self.assertEqual(md.update(b'Hello'), 1)
         self.assertEqual(util.octx_to_num(md.final()),
                          1415821221623963719413415453263690387336440359920)
 
@@ -85,7 +85,7 @@ class EVPTestCase(unittest.TestCase):
         # now run the same test again, relying on EVP.MessageDigest() to call
         # get_digestbyname() under the hood
         md = EVP.MessageDigest('sha1')
-        self.assertEqual(md.update('Hello'), 1)
+        self.assertEqual(md.update(b'Hello'), 1)
         self.assertEqual(util.octx_to_num(md.final()),
                          1415821221623963719413415453263690387336440359920)
 
