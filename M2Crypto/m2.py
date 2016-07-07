@@ -26,6 +26,15 @@ Copyright (c) 1999-2004 Ng Pheng Siong. All rights reserved.
 Portions created by Open Source Applications Foundation (OSAF) are
 Copyright (C) 2004 OSAF. All Rights Reserved.
 """
+from M2Crypto.__m2crypto import SWIGVERSION
 
-from M2Crypto._m2crypto import *
+# BBB: Compatibility with swig less than 2.0.4. When build is done without
+# '-builtin' option (available only with swig 2.0.4+), the use of _m2crypto
+# causes NameError:
+# NameError: name '_STACK__m2crypto' is not defined
+# So I use the __m2crypto.
+if SWIGVERSION < 0x20004:
+    from M2Crypto.__m2crypto import *
+else:
+    from M2Crypto._m2crypto import *
 lib_init()

@@ -54,6 +54,8 @@ static PyObject *ssl_set_tmp_rsa_cb_func;
 #define LHASH_OF(type) struct lhash_st_##type
 #endif
 
+%constant int SWIGVERSION = SWIG_VERSION;
+
 %include constraints.i
 %include _threads.i
 %include _lib.i
@@ -79,4 +81,3 @@ static PyObject *ssl_set_tmp_rsa_cb_func;
 %constant int encrypt = 1;
 %constant int decrypt = 0;
 #endif
-  

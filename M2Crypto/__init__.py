@@ -23,10 +23,21 @@ __version__ = '0.24.0'
 version = __version__  # type: str
 version_info = StrictVersion(__version__).version
 
+from M2Crypto import __m2crypto
 from M2Crypto import (ASN1, AuthCookie, BIO, BN, DH, DSA, EVP, Engine, Err,
-                      PGP, RC4, RSA, Rand, SMIME, SSL, X509, _m2crypto,
-                      ftpslib, httpslib, m2, m2urllib, m2xmlrpclib,
-                      threading, util)
+                      PGP, RC4, RSA, Rand, SMIME, SSL, X509, ftpslib, httpslib,
+                      m2, m2urllib, m2xmlrpclib, threading, util)
+
+# BBB: Compatibility with swig less than 2.0.4. When build is done without
+# '-builtin' option (available only with swig 2.0.4+), the use of _m2crypto
+# causes NameError:
+# NameError: name '_STACK__m2crypto' is not defined
+# So I use the __m2crypto.
+if __m2crypto.SWIGVERSION < 0x20004:
+    _m2crypto = __m2crypto
+else:
+    from M2Crypto import _m2crypto
+
 if util.py27plus:
     from typing import Tuple  # noqa
 

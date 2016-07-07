@@ -10,7 +10,7 @@ The following software packages are pre-requisites:
 
 -  Python 2.6 or newer
 -  OpenSSL 1.0.1e or newer
--  SWIG 2.0.4 or newer
+-  SWIG 1.3.40 or newer
 -  Python 2.6 platforms require the Python package unittest2 to be
    installed
 
@@ -129,7 +129,7 @@ him a working copy of M2Crypto on his system::
     $ brew install openssl && brew install swig
     $ brew --prefix openssl
     /usr/local/opt/openssl
-    $ LDFLAGS="-L$(brew --prefix openssl)/lib" 
+    $ LDFLAGS="-L$(brew --prefix openssl)/lib"
     CFLAGS="-I$(brew --prefix openssl)/include" \
     SWIG_FEATURES="-I$(brew --prefix openssl)/include" \
     pip install m2crypto

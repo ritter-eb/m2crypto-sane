@@ -13,6 +13,7 @@ Copyright 2008-2011 Heikki Toivonen. All rights reserved.
 import glob
 import os
 import platform
+import re
 import string
 import sys
 
@@ -22,7 +23,9 @@ from distutils.command import build
 from distutils.command.clean import clean
 from distutils.dir_util import mkpath
 from distutils.file_util import copy_file
+from distutils.version import LooseVersion
 from setuptools.command import build_ext
+from subprocess import Popen, PIPE, STDOUT
 
 
 if sys.version_info[:2] <= (2, 6):
@@ -55,6 +58,14 @@ class _M2CryptoBuildExt(build_ext.build_ext):
     include_dirs settings made at the command line or in a setup.cfg file'''
     user_options = build_ext.build_ext.user_options + \
         [('openssl=', 'o', 'Prefix for openssl installation location')]
+
+    def get_swig_version(self):
+        '''Return the version of swig'''
+        proc = Popen(['swig -version'], stdout=PIPE, stderr=STDOUT, shell=True)
+        output = proc.stdout.read()
+        m = re.search(r'Version\s*([\d.]+)', output)
+        if m:
+            return m.group(1)
 
     def initialize_options(self):
         '''Overload to enable custom openssl settings to be picked up'''
@@ -111,6 +122,11 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         self.swig_opts.append('-includeall')
         self.swig_opts.append('-modern')
         self.swig_opts.append('-builtin')
+
+        # -builtin option is only available in SWIG greater than 2.0.3
+        swig_version = self.get_swig_version()
+        if swig_version and LooseVersion(swig_version) < LooseVersion('2.0.4'):
+            self.swig_opts.remove('-builtin')
 
         # These two lines are a workaround for
         # http://bugs.python.org/issue2624 , hard-coding that we are only
