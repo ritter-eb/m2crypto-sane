@@ -11,6 +11,7 @@ Copyright (C) 2004-2007 OSAF. All Rights Reserved.
 Copyright 2008-2011 Heikki Toivonen. All rights reserved.
 """
 import glob
+import logging
 import os
 import platform
 import string
@@ -28,6 +29,9 @@ from distutils.version import StrictVersion
 from setuptools.command import build_ext
 
 REQUIRED_SWIG_VERSION = '2.0.4'
+
+logging.basicConfig(format='%(levelname)s:%(funcName)s:%(message)s',
+                    level=logging.DEBUG)
 
 if sys.version_info[:2] <= (2, 6):
     # This covers hopefully only RHEL-6 (users of any other 2.6 Pythons
@@ -68,7 +72,10 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         # command line option
         if os.name == 'nt':
             self.libraries = ['ssleay32', 'libeay32']
-            self.openssl = 'c:\\pkg'
+            if platform.architecture()[0].startswith("64bit"):
+                self.openssl = 'c:\\OpenSSL-Win64'                
+            else:
+                self.openssl = 'c:\\OpenSSL'
         else:
             self.libraries = ['ssl', 'crypto']
             self.openssl = '/usr'
@@ -165,9 +172,10 @@ def swig_version(req_ver):
     IND_VER_LINE = 'SWIG Version '
 
     try:
-        pid = subprocess.Popen(['swig', '-version'], stdout=subprocess.PIPE)
+        pid = subprocess.Popen(['swig', '-version'], shell=True, stdout=subprocess.PIPE)
     except OSError:
-        return False
+        # return False
+        raise
 
     out, _ = pid.communicate()
     if hasattr(out, 'decode'):
@@ -181,6 +189,7 @@ def swig_version(req_ver):
 
     if not ver_str:
         raise OSError('Unknown format of swig -version output:\n%s' % out)
+    print("ver_str = %s" % ver_str)
 
     return StrictVersion(ver_str) >= StrictVersion(req_ver)
 

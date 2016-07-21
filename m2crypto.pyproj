@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{17653c7b-07ca-4e63-94bc-1092eb5f83cb}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>setup.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId />
+    <InterpreterVersion />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="dev-requirements.txt" />
+    <Content Include="doc\howto.ca.html" />
+    <Content Include="doc\howto.smime.html" />
+    <Content Include="doc\howto.ssl.html" />
+    <Content Include="doc\ZServerSSL-HOWTO.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="contrib\dispatcher.py" />
+    <Compile Include="contrib\isaac.httpslib.py" />
+    <Compile Include="contrib\SimpleX509create.py" />
+    <Compile Include="contrib\smimeplus.py" />
+    <Compile Include="M2Crypto\ASN1.py" />
+    <Compile Include="M2Crypto\AuthCookie.py" />
+    <Compile Include="M2Crypto\BIO.py" />
+    <Compile Include="M2Crypto\BN.py" />
+    <Compile Include="M2Crypto\callback.py" />
+    <Compile Include="M2Crypto\DH.py" />
+    <Compile Include="M2Crypto\DSA.py" />
+    <Compile Include="M2Crypto\EC.py" />
+    <Compile Include="M2Crypto\Engine.py" />
+    <Compile Include="M2Crypto\Err.py" />
+    <Compile Include="M2Crypto\EVP.py" />
+    <Compile Include="M2Crypto\ftpslib.py" />
+    <Compile Include="M2Crypto\httpslib.py" />
+    <Compile Include="M2Crypto\m2.py" />
+    <Compile Include="M2Crypto\m2urllib.py" />
+    <Compile Include="M2Crypto\m2urllib2.py" />
+    <Compile Include="M2Crypto\m2xmlrpclib.py" />
+    <Compile Include="M2Crypto\PGP\constants.py" />
+    <Compile Include="M2Crypto\PGP\packet.py" />
+    <Compile Include="M2Crypto\PGP\PublicKey.py" />
+    <Compile Include="M2Crypto\PGP\PublicKeyRing.py" />
+    <Compile Include="M2Crypto\PGP\RSA.py" />
+    <Compile Include="M2Crypto\PGP\__init__.py" />
+    <Compile Include="M2Crypto\Rand.py" />
+    <Compile Include="M2Crypto\RC4.py" />
+    <Compile Include="M2Crypto\RSA.py" />
+    <Compile Include="M2Crypto\six.py" />
+    <Compile Include="M2Crypto\SMIME.py" />
+    <Compile Include="M2Crypto\SSL\cb.py" />
+    <Compile Include="M2Crypto\SSL\Checker.py" />
+    <Compile Include="M2Crypto\SSL\Cipher.py" />
+    <Compile Include="M2Crypto\SSL\Connection.py" />
+    <Compile Include="M2Crypto\SSL\Context.py" />
+    <Compile Include="M2Crypto\SSL\Session.py" />
+    <Compile Include="M2Crypto\SSL\SSLServer.py" />
+    <Compile Include="M2Crypto\SSL\ssl_dispatcher.py" />
+    <Compile Include="M2Crypto\SSL\timeout.py" />
+    <Compile Include="M2Crypto\SSL\TwistedProtocolWrapper.py" />
+    <Compile Include="M2Crypto\SSL\__init__.py" />
+    <Compile Include="M2Crypto\threading.py" />
+    <Compile Include="M2Crypto\util.py" />
+    <Compile Include="M2Crypto\X509.py" />
+    <Compile Include="M2Crypto\__init__.py" />
+    <Compile Include="setup.py" />
+    <Compile Include="tests\alltests.py" />
+    <Compile Include="tests\fips.py" />
+    <Compile Include="tests\makecerts.py" />
+    <Compile Include="tests\test_asn1.py" />
+    <Compile Include="tests\test_authcookie.py" />
+    <Compile Include="tests\test_bio.py" />
+    <Compile Include="tests\test_bio_file.py" />
+    <Compile Include="tests\test_bio_iobuf.py" />
+    <Compile Include="tests\test_bio_membuf.py" />
+    <Compile Include="tests\test_bio_ssl.py" />
+    <Compile Include="tests\test_bn.py" />
+    <Compile Include="tests\test_dh.py" />
+    <Compile Include="tests\test_dsa.py" />
+    <Compile Include="tests\test_ecdh.py" />
+    <Compile Include="tests\test_ecdsa.py" />
+    <Compile Include="tests\test_ec_curves.py" />
+    <Compile Include="tests\test_engine.py" />
+    <Compile Include="tests\test_evp.py" />
+    <Compile Include="tests\test_obj.py" />
+    <Compile Include="tests\test_pgp.py" />
+    <Compile Include="tests\test_rand.py" />
+    <Compile Include="tests\test_rc4.py" />
+    <Compile Include="tests\test_rsa.py" />
+    <Compile Include="tests\test_smime.py" />
+    <Compile Include="tests\test_ssl.py" />
+    <Compile Include="tests\test_ssl_offline.py" />
+    <Compile Include="tests\test_ssl_win.py" />
+    <Compile Include="tests\test_threading.py" />
+    <Compile Include="tests\test_x509.py" />
+    <Compile Include="tests\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="contrib" />
+    <Folder Include="doc" />
+    <Folder Include="M2Crypto" />
+    <Folder Include="M2Crypto\PGP" />
+    <Folder Include="M2Crypto\SSL" />
+    <Folder Include="tests" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>
