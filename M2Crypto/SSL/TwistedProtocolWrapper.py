@@ -14,6 +14,8 @@ __all__ = ['connectSSL', 'connectTCP', 'listenSSL', 'listenTCP',
 
 import logging
 
+from functools import partial
+
 import twisted.internet.reactor
 import twisted.protocols.policies as policies
 
@@ -165,6 +167,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def __init__(self, factory, wrappedProtocol, startPassThrough, client,
                  contextFactory, postConnectionCheck):
+        # type: policies.WrappingFactory, object, int, int, object, Checker
         """
         @param factory:
         @param wrappedProtocol:
@@ -216,8 +219,8 @@ class TLSProtocolWrapper(ProtocolWrapper):
             self.ssl = None
             self.internalBio = None
             self.networkBio = None
-        self.data = ''
-        self.encrypted = ''
+        self.data = b''
+        self.encrypted = b''
         self.tlsStarted = 0
         self.checked = 0
         self.isClient = 1
@@ -266,6 +269,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.tlsStarted = 1
 
     def write(self, data):
+        # type: (bytes) -> None
         if not self.tlsStarted:
             ProtocolWrapper.write(self, data)
             return
@@ -297,6 +301,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
             self._clientHello()
 
     def dataReceived(self, data):
+        # type: (bytes) -> None
         if not self.tlsStarted:
             ProtocolWrapper.dataReceived(self, data)
             return
@@ -324,7 +329,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def connectionLost(self, reason):
         # type: (AnyStr) -> None
-        log.debug('reason = %s (%s)', reason, type(reason))
+        # reason = [Failure instance: Traceback (failure with no
+        # frames): <class 'twisted.internet.error.ConnectionDone'>:
+        # Connection was closed cleanly. ] (<type 'instance'>)
         self.clear()
         ProtocolWrapper.connectionLost(self, reason)
 
@@ -354,69 +361,139 @@ class TLSProtocolWrapper(ProtocolWrapper):
             e.args = (m2.ssl_get_verify_result(self.ssl._ptr()), e.args[0])
             raise e
 
-    def _encrypt(self, data='', clientHello=0):
-        # XXX near mirror image of _decrypt - refactor
-        encryptedData = ''
+    # Optimizations to reduce attribute accesses
+
+    @property
+    def _get_wr_guar_ssl(self):
+        # type: () -> Callable[[], int]
+        # size_t BIO_ctrl_get_write_guarantee(BIO *b);
+        # BIO_ctrl_get_write_guarantee()
+        # return the maximum length of data that can be currently
+        # written to the BIO. Writes larger than this value will return
+        # a value from BIO_write() less than the amount requested or if
+        # the buffer is full request a retry.
+        return partial(m2.bio_ctrl_get_write_guarantee,
+                       self.sslBio._ptr())
+
+    @property
+    def _get_wr_guar_net(self):
+        # type: () -> Callable[[], int]
+        return partial(m2.bio_ctrl_get_write_guarantee,
+                       self.networkBio._ptr())
+
+    @property
+    def _shoud_retry_ssl(self):
+        # type: () -> Callable[[], int]
+        # BIO_should_retry() is true if the call that produced this
+        # condition should then be retried at a later time.
+        return partial(m2.bio_should_retry, self.sslBio._ptr())
+
+    @property
+    def _shoud_retry_net(self):
+        # type: () -> Callable[[], int]
+        return partial(m2.bio_should_retry, self.networkBio._ptr())
+
+    @property
+    def _ctrl_pend_ssl(self):
+        # type: () -> Callable[[], int]
+        # size_t BIO_ctrl_pending(BIO *b);
+        # BIO_ctrl_pending() return the number of pending characters in
+        # the BIOs read and write buffers.
+        return partial(m2.bio_ctrl_pending, self.sslBio._ptr())
+
+    @property
+    def _ctrl_pend_net(self):
+        # type: () -> Callable[[], int]
+        return partial(m2.bio_ctrl_pending, self.networkBio._ptr())
+
+    @property
+    def _write_ssl(self):
+        # type: () -> Callable[[bytes], int]
+        # All these functions return either the amount of data
+        # successfully read or written (if the return value is
+        # positive) or that no data was successfully read or written
+        # if the result is 0 or -1. If the return value is -2 then
+        # the operation is not implemented in the specific BIO type.
+        return partial(m2.bio_write, self.sslBio._ptr())
+
+    @property
+    def _write_net(self):
+        # type: () -> Callable[[bytes], int]
+        return partial(m2.bio_write, self.networkBio._ptr())
+
+    @property
+    def _read_ssl(self):
+        # type: () -> Callable[[int], Optional[bytes]]
+        return partial(m2.bio_read, self.sslBio._ptr())
+
+    @property
+    def _read_net(self):
+        # type: () -> Callable[[int], Optional[bytes]]
+        return partial(m2.bio_read, self.networkBio._ptr())
+
+    def _encrypt(self, data=b'', clientHello=0):
+        # type: (bytes, int) -> bytes
+        """
+
+        @param data:
+        @param clientHello:
+        @return:
+        """
+        encryptedData = b''
         self.data += data
-        # Optimizations to reduce attribute accesses
-        sslBioPtr = self.sslBio._ptr()
-        networkBio = self.networkBio._ptr()
-        m2bio_ctrl_get_write_guarantee = m2.bio_ctrl_get_write_guarantee
-        m2bio_write = m2.bio_write
-        m2bio_should_retry = m2.bio_should_retry
-        m2bio_ctrl_pending = m2.bio_ctrl_pending
-        m2bio_read = m2.bio_read
 
         while 1:
-            g = m2bio_ctrl_get_write_guarantee(sslBioPtr)
-            if g > 0 and self.data != '' or clientHello:
-                r = m2bio_write(sslBioPtr, self.data)
+            log.debug('self.data = "%s"', self.data)
+            if (self._get_wr_guar_ssl() > 0 and self.data != b'') or clientHello:
+                r = self._write_ssl(self.data)
                 if r <= 0:
-                    assert(m2bio_should_retry(sslBioPtr))
+                    if not self._shoud_retry_ssl():
+                        raise IOError(
+                            ('Data left to be written to %s, ' +
+                             'but cannot retry SSL connection!') % self.sslBio)
                 else:
                     assert self.checked
                     self.data = self.data[r:]
 
-            pending = m2bio_ctrl_pending(networkBio)
+            pending = self._ctrl_pend_net()
             if pending:
-                d = m2bio_read(networkBio, pending)
+                d = self._read_net(pending)
                 if d is not None:  # This is strange, but d can be None
                     encryptedData += d
                 else:
-                    assert(m2bio_should_retry(networkBio))
+                    assert(self._shoud_retry_net())
             else:
                 break
         return encryptedData
 
-    def _decrypt(self, data=''):
-        # XXX near mirror image of _encrypt - refactor
+    def _decrypt(self, data=b''):
+        # type: (bytes) -> bytes
         self.encrypted += data
-        decryptedData = ''
-        # Optimizations to reduce attribute accesses
-        sslBioPtr = self.sslBio._ptr()
-        networkBio = self.networkBio._ptr()
-        m2bio_ctrl_get_write_guarantee = m2.bio_ctrl_get_write_guarantee
-        m2bio_write = m2.bio_write
-        m2bio_should_retry = m2.bio_should_retry
-        m2bio_ctrl_pending = m2.bio_ctrl_pending
-        m2bio_read = m2.bio_read
+        decryptedData = b''
 
         while 1:
-            g = m2bio_ctrl_get_write_guarantee(networkBio)
-            if g > 0 and self.encrypted != '':
-                r = m2bio_write(networkBio, self.encrypted)
+            log.debug('self.encrypted = "%s"', self.encrypted)
+            if self._get_wr_guar_ssl() > 0 and self.encrypted != b'':
+                r = self._write_net(self.encrypted)
                 if r <= 0:
-                    assert(m2bio_should_retry(networkBio))
+                    log.debug('self._shoud_retry_net = %s (%s)',
+                              self._shoud_retry_net(),
+                              type(self._shoud_retry_net()))
+                    if not self._shoud_retry_net():
+                        raise IOError(
+                            ('Data left to be written to %s, ' +
+                             'but cannot retry SSL connection!') %
+                            self.networkBio)
                 else:
                     self.encrypted = self.encrypted[r:]
 
-            pending = m2bio_ctrl_pending(sslBioPtr)
+            pending = self._ctrl_pend_ssl()
             if pending:
-                d = m2bio_read(sslBioPtr, pending)
+                d = self._read_ssl(pending)
                 if d is not None:  # This is strange, but d can be None
                     decryptedData += d
                 else:
-                    assert(m2bio_should_retry(sslBioPtr))
+                    assert(self._shoud_retry_ssl())
             else:
                 break
 
