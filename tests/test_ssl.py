@@ -361,8 +361,10 @@ class MiscSSLClientTestCase(BaseSSLClientTestCase):
         self.assertIn('s_server -quiet -www', data)
 
     # TLS is required in FIPS mode
+    # Also disabled by default upstream in 1.0.2g (but user can reenable).
     @unittest.skipIf(fips_mode, "Can't be run in FIPS mode")
     @unittest.skipIf(plat_debian, "Debian distros don't allow weak ciphers")
+    @unittest.skipIf(not hasattr(m2, 'sslv2_method'), 'OpenSSL built with OPENSSL_NO_SSL2')
     def test_sslv23_weak_crypto(self):
         self.args = self.args + ['-ssl2']
         pid = self.start_server(self.args)
