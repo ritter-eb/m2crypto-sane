@@ -8,11 +8,23 @@
 #include <openssl/dsa.h>
 
 PyObject *dsa_sig_get_r(DSA_SIG *dsa_sig) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     return bn_to_mpi(dsa_sig->r);
+#else
+    BIGNUM* pr;
+    DSA_SIG_get0(dsa_sig, &pr, NULL);
+    return bn_to_mpi(pr);
+#endif
 }
 
 PyObject *dsa_sig_get_s(DSA_SIG *dsa_sig) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     return bn_to_mpi(dsa_sig->s);
+#else
+    BIGNUM* qs;
+    DSA_SIG_get0(dsa_sig, NULL, &qs);
+    return bn_to_mpi(qs);
+#endif
 }
 %}
 
@@ -27,6 +39,7 @@ extern int DSA_size(const DSA *); /* assert(dsa->q); */
 %rename(dsa_gen_key) DSA_generate_key;
 extern int DSA_generate_key(DSA *);
 
+%warnfilter(454) _dsa_err;
 %inline %{
 static PyObject *_dsa_err;
 
@@ -58,101 +71,111 @@ DSA *dsa_generate_parameters(int bits, PyObject *pyfunc) {
 }
 
 PyObject *dsa_get_p(DSA *dsa) {
-    if (!dsa->p) {
+    BIGNUM* p = NULL;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (dsa->p)
+        p = dsa->p;
+#else
+    DSA_get0_pqg(dsa, &p, NULL, NULL);
+#endif
+    if (!p) {
         PyErr_SetString(_dsa_err, "'p' is unset");
         return NULL;
     }
-    return bn_to_mpi(dsa->p);
+    return bn_to_mpi(p);
 }
 
 PyObject *dsa_get_q(DSA *dsa) {
-    if (!dsa->q) {
+    BIGNUM* q = NULL;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (dsa->q)
+        q = dsa->q;
+#else
+    DSA_get0_pqg(dsa, NULL, &q, NULL);
+#endif
+    if (!q) {
         PyErr_SetString(_dsa_err, "'q' is unset");
         return NULL;
     }
-    return bn_to_mpi(dsa->q);
+    return bn_to_mpi(q);
 }
 
 PyObject *dsa_get_g(DSA *dsa) {
-    if (!dsa->g) {
+    BIGNUM* g = NULL;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (dsa->g)
+        g = dsa->g;
+#else
+    DSA_get0_pqg(dsa, NULL, NULL, &g);
+#endif
+    if (!g) {
         PyErr_SetString(_dsa_err, "'g' is unset");
         return NULL;
     }
-    return bn_to_mpi(dsa->g);
+    return bn_to_mpi(g);
 }
 
 PyObject *dsa_get_pub(DSA *dsa) {
-    if (!dsa->pub_key) {
+    BIGNUM* pub_key = NULL;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (dsa->pub_key)
+        pub_key = dsa->pub_key;
+#else
+    DSA_get0_key(dsa, &pub_key, NULL);
+#endif
+    if (!pub_key) {
         PyErr_SetString(_dsa_err, "'pub' is unset");
         return NULL;
     }
-    return bn_to_mpi(dsa->pub_key);
+    return bn_to_mpi(pub_key);
 }
 
 PyObject *dsa_get_priv(DSA *dsa) {
-    if (!dsa->priv_key) {
+    BIGNUM* priv_key = NULL;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    if (dsa->priv_key)
+        priv_key = dsa->priv_key;
+#else
+    DSA_get0_key(dsa, NULL, &priv_key);
+#endif
+    if (!priv_key) {
         PyErr_SetString(_dsa_err, "'priv' is unset");
         return NULL;
     }
-    return bn_to_mpi(dsa->priv_key);
+    return bn_to_mpi(priv_key);
 }
 
-PyObject *dsa_set_p(DSA *dsa, PyObject *value) {
-    BIGNUM *bn;
-    const void *vbuf;
-    int vlen;
+PyObject *dsa_set_pqg(DSA *dsa, PyObject *pval, PyObject* qval, PyObject* gval) {
+    BIGNUM* p, *q, *g;
 
-    if (m2_PyObject_AsReadBufferInt(value, &vbuf, &vlen) == -1)
+    if (!(p = m2_PyObject_AsBIGNUM(pval, _dsa_err))
+        || !(q = m2_PyObject_AsBIGNUM(qval, _dsa_err))
+        || !(g = m2_PyObject_AsBIGNUM(gval, _dsa_err)))
         return NULL;
 
-    if (!(bn = BN_mpi2bn((unsigned char *)vbuf, vlen, NULL))) {
-        PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
-        return NULL;
-    }
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     if (dsa->p)
         BN_free(dsa->p);
-    dsa->p = bn;
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-PyObject *dsa_set_q(DSA *dsa, PyObject *value) {
-    BIGNUM *bn;
-    const void *vbuf;
-    int vlen;
-
-    if (m2_PyObject_AsReadBufferInt(value, &vbuf, &vlen) == -1)
-        return NULL;
-
-    if (!(bn = BN_mpi2bn((unsigned char *)vbuf, vlen, NULL))) {
-        PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
-        return NULL;
-    }
+    dsa->p = p;
     if (dsa->q)
         BN_free(dsa->q);
-    dsa->q = bn;
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-PyObject *dsa_set_g(DSA *dsa, PyObject *value) {
-    BIGNUM *bn;
-    const void *vbuf;
-    int vlen;
-
-    if (m2_PyObject_AsReadBufferInt(value, &vbuf, &vlen) == -1)
-        return NULL;
-
-    if (!(bn = BN_mpi2bn((unsigned char *)vbuf, vlen, NULL))) {
-        PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
-        return NULL;
-    }
+    dsa->q = q;
     if (dsa->g)
         BN_free(dsa->g);
-    dsa->g = bn;
+    dsa->g = g;
+#else
+    if (!DSA_set0_pqg(dsa, p, q, g)) {
+        PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
+        BN_free(p);
+        BN_free(q);
+        BN_free(g);
+        return NULL;
+        }
+#endif
+
     Py_INCREF(Py_None);
     return Py_None;
-}
+    }
 
 PyObject *dsa_set_pub(DSA *dsa, PyObject *value) {
     BIGNUM *bn;
@@ -166,9 +189,16 @@ PyObject *dsa_set_pub(DSA *dsa, PyObject *value) {
         PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
         return NULL;
     }
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     if (dsa->pub_key)
         BN_free(dsa->pub_key);
     dsa->pub_key = bn;
+#else
+    if (!DSA_set0_key(dsa, bn, NULL)) {
+        BN_free(bn);
+        PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
+    }
+#endif
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -282,6 +312,7 @@ int dsa_verify(DSA *dsa, PyObject *value, PyObject *r, PyObject *s) {
     const void *vbuf, *rbuf, *sbuf;
     int vlen, rlen, slen;
     DSA_SIG *sig;
+    BIGNUM* pr, *ps;
     int ret;
 
     if ((m2_PyObject_AsReadBufferInt(value, &vbuf, &vlen) == -1)
@@ -293,16 +324,30 @@ int dsa_verify(DSA *dsa, PyObject *value, PyObject *r, PyObject *s) {
         PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
     }
-    if (!(sig->r = BN_mpi2bn((unsigned char *)rbuf, rlen, NULL))) {
+    if (!(pr = BN_mpi2bn((unsigned char *)rbuf, rlen, NULL))) {
         PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
         DSA_SIG_free(sig);
         return -1;
     }
-    if (!(sig->s = BN_mpi2bn((unsigned char *)sbuf, slen, NULL))) {
+    if (!(ps = BN_mpi2bn((unsigned char *)sbuf, slen, NULL))) {
         PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
         DSA_SIG_free(sig);
+        BN_free(pr);
         return -1;
     }
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    sig->r = pr;
+    sig->ps = ps;
+#else
+    if (!DSA_SIG_set0(sig, pr, ps)) {
+        PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
+        DSA_SIG_free(sig);
+        BN_free(pr);
+        BN_free(ps);
+        return -1;
+    }
+#endif
+
     ret = DSA_do_verify(vbuf, vlen, sig, dsa);
     DSA_SIG_free(sig);
     if (ret == -1)
@@ -356,15 +401,33 @@ int dsa_verify_asn1(DSA *dsa, PyObject *value, PyObject *sig) {
 }
 
 int dsa_check_key(DSA *dsa) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     return (dsa->pub_key) && (dsa->priv_key);
+#else
+    BIGNUM* pub_key, *priv_key;
+    DSA_get0_key(dsa, &pub_key, &priv_key);
+    return pub_key != NULL && priv_key != NULL;
+#endif
 }
 
 int dsa_check_pub_key(DSA *dsa) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     return dsa->pub_key ? 1 : 0;
+#else
+    BIGNUM* pub_key;
+    DSA_get0_key(dsa, &pub_key, NULL);
+    return pub_key ? 1 : 0;
+#endif
 }
 
 int dsa_keylen(DSA *dsa) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     return BN_num_bits(dsa->p);
+#else
+    BIGNUM* p;
+    DSA_get0_pqg(dsa, &p, NULL, NULL);
+    return BN_num_bits(p);
+#endif
 }
 
 int dsa_type_check(DSA *dsa) {
