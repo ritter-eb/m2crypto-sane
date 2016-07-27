@@ -285,11 +285,12 @@ class TLSProtocolWrapper(ProtocolWrapper):
             raise e
 
     def writeSequence(self, data):
+        # type: (List[bytes]) -> None
         if not self.tlsStarted:
-            ProtocolWrapper.writeSequence(self, ''.join(data))
+            ProtocolWrapper.writeSequence(self, b''.join(data))
             return
 
-        self.write(''.join(data))
+        self.write(b''.join(data))
 
     def loseConnection(self):
         # XXX Do we need to do m2.ssl_shutdown(self.ssl._ptr())?
@@ -319,7 +320,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
                 ProtocolWrapper.dataReceived(self, decryptedData)
 
-                if decryptedData == '' and encryptedData == '':
+                if decryptedData == b'' and encryptedData == b'':
                     break
         except BIO.BIOError as e:
             # See http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS

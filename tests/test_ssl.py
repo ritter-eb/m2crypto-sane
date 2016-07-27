@@ -941,7 +941,7 @@ class TwistedSSLClientTestCase(BaseSSLClientTestCase):
 
         try:
             global twisted_data
-            twisted_data = ''
+            twisted_data = b''
 
             context_factory = ContextFactory()
             factory = EchoClientFactory()
