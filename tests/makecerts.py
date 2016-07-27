@@ -203,7 +203,7 @@ if __name__ == '__main__':
     os.chdir(os.path.dirname(sys.argv[0]))
 
     for key_name in names:
-        genned_key = RSA.gen_key(1024, m2.RSA_F4)
+        genned_key = RSA.gen_key(2048, m2.RSA_F4)
         genned_key.save_key('%s_key.pem' % key_name, None)
 
     ca_bits, pk_bits = mk_ca()
