@@ -241,8 +241,7 @@ class X509_Name_Entry:  # noqa
         @param data: data in a binary form to be set
         @return: 0 on failure, 1 on success
         """
-        return m2.x509_name_entry_set_data(self.x509_name_entry,
-                                           type, util.py3bytes(data))
+        return m2.x509_name_entry_set_data(self.x509_name_entry, type, data)
 
     def get_object(self):
         # type: () -> ASN1.ASN1_Object
@@ -386,7 +385,7 @@ class X509_Name:  # noqa
         @return: 1 for success of 0 if an error occurred.
         """
         return m2.x509_name_add_entry_by_txt(self.x509_name,
-                                             util.py3bytes(field), type,
+                                             util.py3str(field), type,
                                              entry, len, loc, set)
 
     def entry_count(self):
@@ -834,8 +833,7 @@ def load_cert_string(string, format=FORMAT_PEM):
                    and FORMAT_FORMAT_DER)
     @return: M2Crypto.X509.X509 object.
     """
-    string = util.py3bytes(string)
-    bio = BIO.MemoryBuffer(string)
+    bio = BIO.MemoryBuffer(util.py3bytes(string))
     return load_cert_bio(bio, format)
 
 
@@ -847,8 +845,7 @@ def load_cert_der_string(string):
     @param string: String containing a certificate in DER format.
     @return: M2Crypto.X509.X509 object.
     """
-    string = util.py3bytes(string)
-    bio = BIO.MemoryBuffer(string)
+    bio = BIO.MemoryBuffer(util.py3bytes(string))
     cptr = m2.d2i_x509(bio._ptr())
     if cptr is None:
         raise X509Error(Err.get_error())
@@ -1082,8 +1079,7 @@ def new_stack_from_der(der_string):
 
     @return: X509_Stack
     """
-    der_string = util.py3bytes(der_string)
-    stack_ptr = m2.make_stack_from_der_sequence(der_string)
+    stack_ptr = m2.make_stack_from_der_sequence(util.py3bytes(der_string))
     if stack_ptr is None:
         raise X509Error(Err.get_error())
     return X509_Stack(stack_ptr, 1, 1)
@@ -1306,8 +1302,7 @@ def load_request_string(string, format=FORMAT_PEM):
 
     @return: M2Crypto.X509.Request object.
     """
-    string = util.py3bytes(string)
-    bio = BIO.MemoryBuffer(string)
+    bio = BIO.MemoryBuffer(util.py3bytes(string))
     return load_request_bio(bio, format)
 
 
@@ -1319,8 +1314,7 @@ def load_request_der_string(string):
     @param string: String containing a certificate request in DER format.
     @return: M2Crypto.X509.Request object.
     """
-    string = util.py3bytes(string)
-    bio = BIO.MemoryBuffer(string)
+    bio = BIO.MemoryBuffer(util.py3bytes(string))
     return load_request_bio(bio, FORMAT_DER)
 
 
