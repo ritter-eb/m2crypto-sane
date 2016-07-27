@@ -444,7 +444,6 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.data += data
 
         while 1:
-            log.debug('self.data = "%s"', self.data)
             if (self._get_wr_guar_ssl() > 0 and self.data != b'') or clientHello:
                 r = self._write_ssl(self.data)
                 if r <= 0:
@@ -473,13 +472,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
         decryptedData = b''
 
         while 1:
-            log.debug('self.encrypted = "%s"', self.encrypted)
             if self._get_wr_guar_ssl() > 0 and self.encrypted != b'':
                 r = self._write_net(self.encrypted)
                 if r <= 0:
-                    log.debug('self._shoud_retry_net = %s (%s)',
-                              self._shoud_retry_net(),
-                              type(self._shoud_retry_net()))
                     if not self._shoud_retry_net():
                         raise IOError(
                             ('Data left to be written to %s, ' +
