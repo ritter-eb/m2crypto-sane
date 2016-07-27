@@ -4012,7 +4012,12 @@ int ssl_verify_callback(int ok, X509_STORE_CTX *ctx) {
          */
         cret = 0;
     } else {
+#if PY_MAJOR_VERSION >= 3
+        /* FIXME This is possibly problematic if ret > MAXINT */
+        cret = (int)PyLong_AsLong(ret);
+#else
         cret = (int)PyInt_AsLong(ret);
+#endif // PY_MAJOR_VERSION >= 3
     }
     Py_XDECREF(ret);
     Py_XDECREF(argv);
@@ -4915,7 +4920,11 @@ PyObject *rand_pseudo_bytes(int n) {
 #endif // PY_MAJOR_VERSION >= 3
 
         PyMem_Free(blob);
+#if PY_MAJOR_VERSION >= 3
+        PyTuple_SET_ITEM(tuple, 1, PyLong_FromLong((long)ret));
+#else
         PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong((long)ret));
+#endif // PY_MAJOR_VERSION >= 3
         return tuple;
     }
 }
@@ -6904,16 +6913,23 @@ PyObject *ssl_accept(SSL *ssl, double timeout) {
     ssl_err = SSL_get_error(ssl, r);
     Py_END_ALLOW_THREADS
 
-
     switch (ssl_err) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
+#if PY_MAJOR_VERSION >= 3
+            obj = PyLong_FromLong((long)1);
+#else
             obj = PyInt_FromLong((long)1);
+#endif //PY_MAJOR_VERSION >= 3
             break;
         case SSL_ERROR_WANT_WRITE:
         case SSL_ERROR_WANT_READ:
             if (timeout <= 0) {
+#if PY_MAJOR_VERSION >= 3
+                obj = PyLong_FromLong((long)0);
+#else
                 obj = PyInt_FromLong((long)0);
+#endif //PY_MAJOR_VERSION >= 3
                 break;
             }
             if (ssl_sleep_with_timeout(ssl, &tv, timeout, ssl_err) == 0)
@@ -6944,16 +6960,23 @@ PyObject *ssl_connect(SSL *ssl, double timeout) {
     ssl_err = SSL_get_error(ssl, r);
     Py_END_ALLOW_THREADS
 
-    
     switch (ssl_err) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
+#if PY_MAJOR_VERSION >= 3
+            obj = PyLong_FromLong((long)1);
+#else
             obj = PyInt_FromLong((long)1);
+#endif //PY_MAJOR_VERSION >= 3
             break;
         case SSL_ERROR_WANT_WRITE:
         case SSL_ERROR_WANT_READ:
             if (timeout <= 0) {
+#if PY_MAJOR_VERSION >= 3
+                obj = PyLong_FromLong((long)0);
+#else
                 obj = PyInt_FromLong((long)0);
+#endif //PY_MAJOR_VERSION >= 3
                 break;
             }
             if (ssl_sleep_with_timeout(ssl, &tv, timeout, ssl_err) == 0)
@@ -6966,7 +6989,6 @@ PyObject *ssl_connect(SSL *ssl, double timeout) {
             obj = NULL;
             break;
     }
-    
     
     return obj;
 }
@@ -10125,6 +10147,7 @@ SWIGINTERN PyObject *_wrap_bio_free(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10430,6 +10453,7 @@ SWIGINTERN PyObject *_wrap_bio_write(PyObject *self, PyObject *args) {
   result = (int)bio_write(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10460,6 +10484,7 @@ SWIGINTERN PyObject *_wrap_bio_ctrl_pending(PyObject *self, PyObject *args) {
   result = (int)bio_ctrl_pending(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10490,6 +10515,7 @@ SWIGINTERN PyObject *_wrap_bio_ctrl_wpending(PyObject *self, PyObject *args) {
   result = (int)bio_ctrl_wpending(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10520,6 +10546,7 @@ SWIGINTERN PyObject *_wrap_bio_ctrl_get_write_guarantee(PyObject *self, PyObject
   result = (int)bio_ctrl_get_write_guarantee(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10550,6 +10577,7 @@ SWIGINTERN PyObject *_wrap_bio_reset(PyObject *self, PyObject *args) {
   result = (int)bio_reset(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10584,6 +10612,7 @@ SWIGINTERN PyObject *_wrap_bio_flush(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10623,6 +10652,7 @@ SWIGINTERN PyObject *_wrap_bio_seek(PyObject *self, PyObject *args) {
   result = (int)bio_seek(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10688,6 +10718,7 @@ SWIGINTERN PyObject *_wrap_bio_get_flags(PyObject *self, PyObject *args) {
   result = (int)bio_get_flags(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10784,6 +10815,7 @@ SWIGINTERN PyObject *_wrap_bio_set_mem_eof_return(PyObject *self, PyObject *args
   result = (int)bio_set_mem_eof_return(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10814,6 +10846,7 @@ SWIGINTERN PyObject *_wrap_bio_get_fd(PyObject *self, PyObject *args) {
   result = (int)bio_get_fd(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10848,6 +10881,7 @@ SWIGINTERN PyObject *_wrap_bio_do_handshake(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10892,6 +10926,7 @@ SWIGINTERN PyObject *_wrap_bio_make_bio_pair(PyObject *self, PyObject *args) {
   result = (int)bio_make_bio_pair(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10931,6 +10966,7 @@ SWIGINTERN PyObject *_wrap_bio_set_write_buf_size(PyObject *self, PyObject *args
   result = (int)bio_set_write_buf_size(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10961,6 +10997,7 @@ SWIGINTERN PyObject *_wrap_bio_should_retry(PyObject *self, PyObject *args) {
   result = (int)bio_should_retry(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -10991,6 +11028,7 @@ SWIGINTERN PyObject *_wrap_bio_should_read(PyObject *self, PyObject *args) {
   result = (int)bio_should_read(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -11021,6 +11059,7 @@ SWIGINTERN PyObject *_wrap_bio_should_write(PyObject *self, PyObject *args) {
   result = (int)bio_should_write(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -11152,6 +11191,7 @@ SWIGINTERN PyObject *_wrap_rand_load_file(PyObject *self, PyObject *args) {
   result = (int)RAND_load_file((char const *)arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
@@ -11180,6 +11220,7 @@ SWIGINTERN PyObject *_wrap_rand_save_file(PyObject *self, PyObject *args) {
   result = (int)RAND_write_file((char const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
@@ -11197,6 +11238,7 @@ SWIGINTERN PyObject *_wrap_rand_poll(PyObject *self, PyObject *args) {
   result = (int)RAND_poll();
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -11212,6 +11254,7 @@ SWIGINTERN PyObject *_wrap_rand_status(PyObject *self, PyObject *args) {
   result = (int)RAND_status();
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -11467,6 +11510,7 @@ SWIGINTERN PyObject *_wrap_rand_win32_event(PyObject *self, PyObject *args) {
   result = (int)rand_win32_event(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -11595,6 +11639,7 @@ SWIGINTERN PyObject *_wrap_digest_init(PyObject *self, PyObject *args) {
   result = (int)EVP_DigestInit(arg1,(EVP_MD const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -12103,6 +12148,7 @@ SWIGINTERN PyObject *_wrap_cipher_set_padding(PyObject *self, PyObject *args) {
   result = (int)EVP_CIPHER_CTX_set_padding(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -12190,6 +12236,7 @@ SWIGINTERN PyObject *_wrap_pkey_assign(PyObject *self, PyObject *args) {
   result = (int)EVP_PKEY_assign(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
@@ -12231,6 +12278,7 @@ SWIGINTERN PyObject *_wrap_pkey_assign_ec(PyObject *self, PyObject *args) {
   result = (int)EVP_PKEY_assign_EC_KEY(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -12275,6 +12323,7 @@ SWIGINTERN PyObject *_wrap_pkey_set1_rsa(PyObject *self, PyObject *args) {
   result = (int)EVP_PKEY_set1_RSA(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -12346,6 +12395,7 @@ SWIGINTERN PyObject *_wrap_sign_init(PyObject *self, PyObject *args) {
   result = (int)EVP_SignInit(arg1,(EVP_MD const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -12390,6 +12440,7 @@ SWIGINTERN PyObject *_wrap_verify_init(PyObject *self, PyObject *args) {
   result = (int)EVP_VerifyInit(arg1,(EVP_MD const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -12420,6 +12471,7 @@ SWIGINTERN PyObject *_wrap_pkey_size(PyObject *self, PyObject *args) {
   result = (int)EVP_PKEY_size(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -12578,6 +12630,7 @@ SWIGINTERN PyObject *_wrap_digest_update(PyObject *self, PyObject *args) {
   result = (int)digest_update(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13137,6 +13190,7 @@ SWIGINTERN PyObject *_wrap_verify_update(PyObject *self, PyObject *args) {
   result = (int)verify_update(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13186,6 +13240,7 @@ SWIGINTERN PyObject *_wrap_verify_final(PyObject *self, PyObject *args) {
   result = (int)verify_final(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13239,6 +13294,7 @@ SWIGINTERN PyObject *_wrap_pkey_write_pem_no_cipher(PyObject *self, PyObject *ar
   result = (int)pkey_write_pem_no_cipher(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13306,6 +13362,7 @@ SWIGINTERN PyObject *_wrap_pkey_write_pem(PyObject *self, PyObject *args) {
   result = (int)pkey_write_pem(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13422,6 +13479,7 @@ SWIGINTERN PyObject *_wrap_pkey_assign_rsa(PyObject *self, PyObject *args) {
   result = (int)pkey_assign_rsa(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13652,6 +13710,7 @@ SWIGINTERN PyObject *_wrap_AES_type_check(PyObject *self, PyObject *args) {
   result = (int)AES_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13788,6 +13847,7 @@ SWIGINTERN PyObject *_wrap_rc4_type_check(PyObject *self, PyObject *args) {
   result = (int)rc4_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13856,6 +13916,7 @@ SWIGINTERN PyObject *_wrap_dh_size(PyObject *self, PyObject *args) {
   result = (int)DH_size((DH const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13886,6 +13947,7 @@ SWIGINTERN PyObject *_wrap_dh_generate_key(PyObject *self, PyObject *args) {
   result = (int)DH_generate_key(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -13934,6 +13996,7 @@ SWIGINTERN PyObject *_wrap_dhparams_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -14006,6 +14069,7 @@ SWIGINTERN PyObject *_wrap_dh_type_check(PyObject *self, PyObject *args) {
   result = (int)dh_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -14144,6 +14208,7 @@ SWIGINTERN PyObject *_wrap_dh_check(PyObject *self, PyObject *args) {
   result = (int)dh_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -14430,6 +14495,7 @@ SWIGINTERN PyObject *_wrap_rsa_size(PyObject *self, PyObject *args) {
   result = (int)RSA_size((RSA const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -14460,6 +14526,7 @@ SWIGINTERN PyObject *_wrap_rsa_check_key(PyObject *self, PyObject *args) {
   result = (int)RSA_check_key((RSA const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -14615,6 +14682,7 @@ SWIGINTERN PyObject *_wrap_rsa_write_key(PyObject *self, PyObject *args) {
   result = (int)rsa_write_key(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -14673,6 +14741,7 @@ SWIGINTERN PyObject *_wrap_rsa_write_key_no_cipher(PyObject *self, PyObject *arg
   result = (int)rsa_write_key_no_cipher(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -14752,6 +14821,7 @@ SWIGINTERN PyObject *_wrap_rsa_write_pub_key(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -15238,6 +15308,7 @@ SWIGINTERN PyObject *_wrap_rsa_verify_pkcs1_pss(PyObject *self, PyObject *args) 
   result = (int)rsa_verify_pkcs1_pss(arg1,arg2,arg3,arg4,arg5);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -15330,6 +15401,7 @@ SWIGINTERN PyObject *_wrap_rsa_verify(PyObject *self, PyObject *args) {
   result = (int)rsa_verify(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -15444,6 +15516,7 @@ SWIGINTERN PyObject *_wrap_rsa_type_check(PyObject *self, PyObject *args) {
   result = (int)rsa_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -15474,6 +15547,7 @@ SWIGINTERN PyObject *_wrap_rsa_check_pub_key(PyObject *self, PyObject *args) {
   result = (int)rsa_check_pub_key(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -15522,6 +15596,7 @@ SWIGINTERN PyObject *_wrap_rsa_write_key_der(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -15590,6 +15665,7 @@ SWIGINTERN PyObject *_wrap_dsa_size(PyObject *self, PyObject *args) {
   result = (int)DSA_size((DSA const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -15620,6 +15696,7 @@ SWIGINTERN PyObject *_wrap_dsa_gen_key(PyObject *self, PyObject *args) {
   result = (int)DSA_generate_key(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16105,6 +16182,7 @@ SWIGINTERN PyObject *_wrap_dsa_write_params_bio(PyObject *self, PyObject *args) 
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16177,6 +16255,7 @@ SWIGINTERN PyObject *_wrap_dsa_write_key_bio(PyObject *self, PyObject *args) {
   result = (int)dsa_write_key_bio(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16235,6 +16314,7 @@ SWIGINTERN PyObject *_wrap_dsa_write_key_bio_no_cipher(PyObject *self, PyObject 
   result = (int)dsa_write_key_bio_no_cipher(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16283,6 +16363,7 @@ SWIGINTERN PyObject *_wrap_dsa_write_pub_key_bio(PyObject *self, PyObject *args)
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16444,6 +16525,7 @@ SWIGINTERN PyObject *_wrap_dsa_verify(PyObject *self, PyObject *args) {
   result = (int)dsa_verify(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16518,6 +16600,7 @@ SWIGINTERN PyObject *_wrap_dsa_verify_asn1(PyObject *self, PyObject *args) {
   result = (int)dsa_verify_asn1(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16548,6 +16631,7 @@ SWIGINTERN PyObject *_wrap_dsa_check_key(PyObject *self, PyObject *args) {
   result = (int)dsa_check_key(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16578,6 +16662,7 @@ SWIGINTERN PyObject *_wrap_dsa_check_pub_key(PyObject *self, PyObject *args) {
   result = (int)dsa_check_pub_key(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16608,6 +16693,7 @@ SWIGINTERN PyObject *_wrap_dsa_keylen(PyObject *self, PyObject *args) {
   result = (int)dsa_keylen(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16638,6 +16724,7 @@ SWIGINTERN PyObject *_wrap_dsa_type_check(PyObject *self, PyObject *args) {
   result = (int)dsa_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -16731,6 +16818,7 @@ SWIGINTERN PyObject *_wrap_ssl_get_error(PyObject *self, PyObject *args) {
   result = (int)SSL_get_error((SSL const *)arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17043,6 +17131,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_get_verify_depth(PyObject *self, PyObject *ar
   result = (int)SSL_CTX_get_verify_depth((SSL_CTX const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17073,6 +17162,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_get_verify_mode(PyObject *self, PyObject *arg
   result = (int)SSL_CTX_get_verify_mode((SSL_CTX const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17113,6 +17203,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_set_cipher_list(PyObject *self, PyObject *arg
   result = (int)SSL_CTX_set_cipher_list(arg1,(char const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -17154,6 +17245,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_add_session(PyObject *self, PyObject *args) {
   result = (int)SSL_CTX_add_session(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17193,6 +17285,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_remove_session(PyObject *self, PyObject *args
   result = (int)SSL_CTX_remove_session(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17539,6 +17632,7 @@ SWIGINTERN PyObject *_wrap_ssl_get_shutdown(PyObject *self, PyObject *args) {
   result = (int)SSL_get_shutdown((SSL const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17608,6 +17702,7 @@ SWIGINTERN PyObject *_wrap_ssl_shutdown(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17638,6 +17733,7 @@ SWIGINTERN PyObject *_wrap_ssl_clear(PyObject *self, PyObject *args) {
   result = (int)SSL_clear(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17672,6 +17768,7 @@ SWIGINTERN PyObject *_wrap_ssl_do_handshake(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17706,6 +17803,7 @@ SWIGINTERN PyObject *_wrap_ssl_renegotiate(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17736,6 +17834,7 @@ SWIGINTERN PyObject *_wrap_ssl_pending(PyObject *self, PyObject *args) {
   result = (int)SSL_pending((SSL const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17820,6 +17919,7 @@ SWIGINTERN PyObject *_wrap_ssl_get_verify_mode(PyObject *self, PyObject *args) {
   result = (int)SSL_get_verify_mode((SSL const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17850,6 +17950,7 @@ SWIGINTERN PyObject *_wrap_ssl_get_verify_depth(PyObject *self, PyObject *args) 
   result = (int)SSL_get_verify_depth((SSL const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -17971,6 +18072,7 @@ SWIGINTERN PyObject *_wrap_ssl_set_cipher_list(PyObject *self, PyObject *args) {
   result = (int)SSL_set_cipher_list(arg1,(char const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -18156,6 +18258,7 @@ SWIGINTERN PyObject *_wrap_ssl_set_session(PyObject *self, PyObject *args) {
   result = (int)SSL_set_session(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -18220,6 +18323,7 @@ SWIGINTERN PyObject *_wrap_ssl_session_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -18448,6 +18552,7 @@ SWIGINTERN PyObject *_wrap_ssl_write(PyObject *self, PyObject *args) {
   result = (int)ssl_write(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -18599,6 +18704,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_use_x509(PyObject *self, PyObject *args) {
   result = (int)ssl_ctx_use_x509(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -18639,6 +18745,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_use_cert(PyObject *self, PyObject *args) {
   result = (int)ssl_ctx_use_cert(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -18681,6 +18788,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_use_cert_chain(PyObject *self, PyObject *args
   result = (int)ssl_ctx_use_cert_chain(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -18723,6 +18831,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_use_privkey(PyObject *self, PyObject *args) {
   result = (int)ssl_ctx_use_privkey(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -18769,6 +18878,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_use_rsa_privkey(PyObject *self, PyObject *arg
   result = (int)ssl_ctx_use_rsa_privkey(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -18813,6 +18923,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_use_pkey_privkey(PyObject *self, PyObject *ar
   result = (int)ssl_ctx_use_pkey_privkey(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -18843,6 +18954,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_check_privkey(PyObject *self, PyObject *args)
   result = (int)ssl_ctx_check_privkey(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19000,6 +19112,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_set_session_id_context(PyObject *self, PyObje
   result = (int)ssl_ctx_set_session_id_context(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19252,6 +19365,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_load_verify_locations(PyObject *self, PyObjec
   result = (int)ssl_ctx_load_verify_locations(arg1,(char const *)arg2,(char const *)arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -19345,6 +19459,7 @@ SWIGINTERN PyObject *_wrap_bio_set_ssl(PyObject *self, PyObject *args) {
   result = (int)bio_set_ssl(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19448,6 +19563,7 @@ SWIGINTERN PyObject *_wrap_ssl_set_tlsext_host_name(PyObject *self, PyObject *ar
   result = (int)ssl_set_tlsext_host_name(arg1,(char const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -19563,6 +19679,7 @@ SWIGINTERN PyObject *_wrap_ssl_set_session_id_context(PyObject *self, PyObject *
   result = (int)ssl_set_session_id_context(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19602,6 +19719,7 @@ SWIGINTERN PyObject *_wrap_ssl_set_fd(PyObject *self, PyObject *args) {
   result = (int)ssl_set_fd(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19710,6 +19828,7 @@ SWIGINTERN PyObject *_wrap_ssl_write_nbio(PyObject *self, PyObject *args) {
   result = (int)ssl_write_nbio(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19740,6 +19859,7 @@ SWIGINTERN PyObject *_wrap_ssl_cipher_get_bits(PyObject *self, PyObject *args) {
   result = (int)ssl_cipher_get_bits(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19770,6 +19890,7 @@ SWIGINTERN PyObject *_wrap_sk_ssl_cipher_num(PyObject *self, PyObject *args) {
   result = (int)sk_ssl_cipher_num(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -19863,6 +19984,7 @@ SWIGINTERN PyObject *_wrap_sk_x509_num(PyObject *self, PyObject *args) {
   result = (int)sk_x509_num(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20012,6 +20134,7 @@ SWIGINTERN PyObject *_wrap_ssl_session_write_pem(PyObject *self, PyObject *args)
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20051,6 +20174,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_set_session_cache_mode(PyObject *self, PyObje
   result = (int)ssl_ctx_set_session_cache_mode(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20081,6 +20205,7 @@ SWIGINTERN PyObject *_wrap_ssl_ctx_get_session_cache_mode(PyObject *self, PyObje
   result = (int)ssl_ctx_get_session_cache_mode(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20147,6 +20272,7 @@ SWIGINTERN PyObject *_wrap_ssl_is_init_finished(PyObject *self, PyObject *args) 
   result = (int)ssl_is_init_finished(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20177,6 +20303,7 @@ SWIGINTERN PyObject *_wrap_x509_check_ca(PyObject *self, PyObject *args) {
   result = (int)X509_check_ca(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20328,6 +20455,7 @@ SWIGINTERN PyObject *_wrap_x509_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20376,6 +20504,7 @@ SWIGINTERN PyObject *_wrap_x509_crl_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20442,6 +20571,7 @@ SWIGINTERN PyObject *_wrap_x509_set_serial_number(PyObject *self, PyObject *args
   result = (int)X509_set_serialNumber(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20513,6 +20643,7 @@ SWIGINTERN PyObject *_wrap_x509_set_pubkey(PyObject *self, PyObject *args) {
   result = (int)X509_set_pubkey(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20584,6 +20715,7 @@ SWIGINTERN PyObject *_wrap_x509_set_issuer_name(PyObject *self, PyObject *args) 
   result = (int)X509_set_issuer_name(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20655,6 +20787,7 @@ SWIGINTERN PyObject *_wrap_x509_set_subject_name(PyObject *self, PyObject *args)
   result = (int)X509_set_subject_name(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20680,6 +20813,7 @@ SWIGINTERN PyObject *_wrap_x509_cmp_current_time(PyObject *self, PyObject *args)
   result = (int)X509_cmp_current_time(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20728,6 +20862,7 @@ SWIGINTERN PyObject *_wrap_x509_check_purpose(PyObject *self, PyObject *args) {
   result = (int)X509_check_purpose(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20776,6 +20911,7 @@ SWIGINTERN PyObject *_wrap_x509_check_trust(PyObject *self, PyObject *args) {
   result = (int)X509_check_trust(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20824,6 +20960,7 @@ SWIGINTERN PyObject *_wrap_x509_write_pem(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20863,6 +21000,7 @@ SWIGINTERN PyObject *_wrap_x509_write_pem_file(PyObject *self, PyObject *args) {
   result = (int)PEM_write_X509(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20907,6 +21045,7 @@ SWIGINTERN PyObject *_wrap_x509_verify(PyObject *self, PyObject *args) {
   result = (int)X509_verify(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -20977,6 +21116,7 @@ SWIGINTERN PyObject *_wrap_x509_add_ext(PyObject *self, PyObject *args) {
   result = (int)X509_add_ext(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21007,6 +21147,7 @@ SWIGINTERN PyObject *_wrap_x509_get_ext_count(PyObject *self, PyObject *args) {
   result = (int)X509_get_ext_count(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21104,6 +21245,7 @@ SWIGINTERN PyObject *_wrap_x509_ext_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21199,6 +21341,7 @@ SWIGINTERN PyObject *_wrap_x509_name_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21265,6 +21408,7 @@ SWIGINTERN PyObject *_wrap_x509_name_entry_count(PyObject *self, PyObject *args)
   result = (int)X509_NAME_entry_count(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21363,6 +21507,7 @@ SWIGINTERN PyObject *_wrap_x509_name_add_entry(PyObject *self, PyObject *args) {
   result = (int)X509_NAME_add_entry(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21447,6 +21592,7 @@ SWIGINTERN PyObject *_wrap_x509_name_add_entry_by_obj(PyObject *self, PyObject *
   result = (int)X509_NAME_add_entry_by_OBJ(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21531,6 +21677,7 @@ SWIGINTERN PyObject *_wrap_x509_name_add_entry_by_nid(PyObject *self, PyObject *
   result = (int)X509_NAME_add_entry_by_NID(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21597,6 +21744,7 @@ SWIGINTERN PyObject *_wrap_x509_name_print_ex(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21654,6 +21802,7 @@ SWIGINTERN PyObject *_wrap_x509_name_print_ex_fp(PyObject *self, PyObject *args)
   result = (int)X509_NAME_print_ex_fp(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21729,6 +21878,7 @@ SWIGINTERN PyObject *_wrap_x509_name_get_index_by_nid(PyObject *self, PyObject *
   result = (int)X509_NAME_get_index_by_NID(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21864,6 +22014,7 @@ SWIGINTERN PyObject *_wrap_x509_name_entry_set_object(PyObject *self, PyObject *
   result = (int)X509_NAME_ENTRY_set_object(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -21978,6 +22129,7 @@ SWIGINTERN PyObject *_wrap_x509_name_entry_set_data(PyObject *self, PyObject *ar
   result = (int)X509_NAME_ENTRY_set_data(arg1,arg2,(unsigned char const *)arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22064,6 +22216,7 @@ SWIGINTERN PyObject *_wrap_x509_req_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22135,6 +22288,7 @@ SWIGINTERN PyObject *_wrap_x509_req_set_pubkey(PyObject *self, PyObject *args) {
   result = (int)X509_REQ_set_pubkey(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22179,6 +22333,7 @@ SWIGINTERN PyObject *_wrap_x509_req_set_subject_name(PyObject *self, PyObject *a
   result = (int)X509_REQ_set_subject_name(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22223,6 +22378,7 @@ SWIGINTERN PyObject *_wrap_x509_req_verify(PyObject *self, PyObject *args) {
   result = (int)X509_REQ_verify(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22281,6 +22437,7 @@ SWIGINTERN PyObject *_wrap_x509_req_sign(PyObject *self, PyObject *args) {
   result = (int)X509_REQ_sign(arg1,arg2,(EVP_MD const *)arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22329,6 +22486,7 @@ SWIGINTERN PyObject *_wrap_i2d_x509_bio(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22377,6 +22535,7 @@ SWIGINTERN PyObject *_wrap_i2d_x509_req_bio(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22449,6 +22608,7 @@ SWIGINTERN PyObject *_wrap_x509_store_add_cert(PyObject *self, PyObject *args) {
   result = (int)X509_STORE_add_cert(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22525,6 +22685,7 @@ SWIGINTERN PyObject *_wrap_x509_store_ctx_get_error(PyObject *self, PyObject *ar
   result = (int)X509_STORE_CTX_get_error(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22550,6 +22711,7 @@ SWIGINTERN PyObject *_wrap_x509_store_ctx_get_error_depth(PyObject *self, PyObje
   result = (int)X509_STORE_CTX_get_error_depth(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22618,6 +22780,7 @@ SWIGINTERN PyObject *_wrap_x509_extension_get_critical(PyObject *self, PyObject 
   result = (int)X509_EXTENSION_get_critical(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22652,6 +22815,7 @@ SWIGINTERN PyObject *_wrap_x509_extension_set_critical(PyObject *self, PyObject 
   result = (int)X509_EXTENSION_set_critical(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22895,6 +23059,7 @@ SWIGINTERN PyObject *_wrap_x509_req_write_pem(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -22965,6 +23130,7 @@ SWIGINTERN PyObject *_wrap_x509_set_version(PyObject *self, PyObject *args) {
   result = (int)x509_set_version(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23031,6 +23197,7 @@ SWIGINTERN PyObject *_wrap_x509_set_not_before(PyObject *self, PyObject *args) {
   result = (int)x509_set_not_before(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23097,6 +23264,7 @@ SWIGINTERN PyObject *_wrap_x509_set_not_after(PyObject *self, PyObject *args) {
   result = (int)x509_set_not_after(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23182,6 +23350,7 @@ SWIGINTERN PyObject *_wrap_x509_sign(PyObject *self, PyObject *args) {
   result = (int)x509_sign(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23295,6 +23464,7 @@ SWIGINTERN PyObject *_wrap_x509_name_set_by_nid(PyObject *self, PyObject *args) 
   result = (int)x509_name_set_by_nid(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23381,6 +23551,7 @@ SWIGINTERN PyObject *_wrap_x509_name_add_entry_by_txt(PyObject *self, PyObject *
   result = (int)x509_name_add_entry_by_txt(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -23496,6 +23667,7 @@ SWIGINTERN PyObject *_wrap_sk_x509_push(PyObject *self, PyObject *args) {
   result = (int)sk_x509_push(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23558,6 +23730,7 @@ SWIGINTERN PyObject *_wrap_x509_store_load_locations(PyObject *self, PyObject *a
   result = (int)x509_store_load_locations(arg1,(char const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -23590,6 +23763,7 @@ SWIGINTERN PyObject *_wrap_x509_type_check(PyObject *self, PyObject *args) {
   result = (int)x509_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23620,6 +23794,7 @@ SWIGINTERN PyObject *_wrap_x509_name_type_check(PyObject *self, PyObject *args) 
   result = (int)x509_name_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23713,6 +23888,7 @@ SWIGINTERN PyObject *_wrap_x509_req_set_version(PyObject *self, PyObject *args) 
   result = (int)x509_req_set_version(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23752,6 +23928,7 @@ SWIGINTERN PyObject *_wrap_x509_req_add_extensions(PyObject *self, PyObject *arg
   result = (int)x509_req_add_extensions(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -23993,6 +24170,7 @@ SWIGINTERN PyObject *_wrap_sk_x509_extension_push(PyObject *self, PyObject *args
   result = (int)sk_x509_extension_push(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24040,6 +24218,7 @@ SWIGINTERN PyObject *_wrap_sk_x509_extension_num(PyObject *self, PyObject *args)
   result = (int)sk_x509_extension_num(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24393,6 +24572,7 @@ SWIGINTERN PyObject *_wrap_i2d_asn1_object(PyObject *self, PyObject *args) {
   result = (int)i2d_ASN1_OBJECT(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24576,6 +24756,7 @@ SWIGINTERN PyObject *_wrap_asn1_string_set(PyObject *self, PyObject *args) {
   result = (int)ASN1_STRING_set(arg1,(void const *)arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24624,6 +24805,7 @@ SWIGINTERN PyObject *_wrap_asn1_string_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24681,6 +24863,7 @@ SWIGINTERN PyObject *_wrap_asn1_string_print_ex(PyObject *self, PyObject *args) 
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24749,6 +24932,7 @@ SWIGINTERN PyObject *_wrap_asn1_time_check(PyObject *self, PyObject *args) {
   result = (int)ASN1_TIME_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24825,6 +25009,7 @@ SWIGINTERN PyObject *_wrap_asn1_time_set_string(PyObject *self, PyObject *args) 
   result = (int)ASN1_TIME_set_string(arg1,(char const *)arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -24875,6 +25060,7 @@ SWIGINTERN PyObject *_wrap_asn1_time_print(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24957,6 +25143,7 @@ SWIGINTERN PyObject *_wrap_asn1_integer_cmp(PyObject *self, PyObject *args) {
   result = (int)ASN1_INTEGER_cmp(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -24987,6 +25174,7 @@ SWIGINTERN PyObject *_wrap_asn1_time_type_check(PyObject *self, PyObject *args) 
   result = (int)asn1_time_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -25051,6 +25239,7 @@ SWIGINTERN PyObject *_wrap_asn1_integer_set(PyObject *self, PyObject *args) {
   result = (int)asn1_integer_set(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -25732,6 +25921,7 @@ SWIGINTERN PyObject *_wrap_smime_write_pkcs7_multi(PyObject *self, PyObject *arg
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -25789,6 +25979,7 @@ SWIGINTERN PyObject *_wrap_smime_write_pkcs7(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -25928,6 +26119,7 @@ SWIGINTERN PyObject *_wrap_pkcs7_write_bio(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -25976,6 +26168,7 @@ SWIGINTERN PyObject *_wrap_pkcs7_write_bio_der(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26006,6 +26199,7 @@ SWIGINTERN PyObject *_wrap_pkcs7_type_nid(PyObject *self, PyObject *args) {
   result = (int)pkcs7_type_nid(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26081,6 +26275,7 @@ SWIGINTERN PyObject *_wrap_smime_crlf_copy(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26281,6 +26476,7 @@ SWIGINTERN PyObject *_wrap_ec_key_size(PyObject *self, PyObject *args) {
   result = (int)ECDSA_size((EC_KEY const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26311,6 +26507,7 @@ SWIGINTERN PyObject *_wrap_ec_key_gen_key(PyObject *self, PyObject *args) {
   result = (int)EC_KEY_generate_key(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26341,6 +26538,7 @@ SWIGINTERN PyObject *_wrap_ec_key_check_key(PyObject *self, PyObject *args) {
   result = (int)EC_KEY_check_key((EC_KEY const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26556,6 +26754,7 @@ SWIGINTERN PyObject *_wrap_ec_key_write_pubkey(PyObject *self, PyObject *args) {
   }
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26669,6 +26868,7 @@ SWIGINTERN PyObject *_wrap_ec_key_write_bio(PyObject *self, PyObject *args) {
   result = (int)ec_key_write_bio(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26727,6 +26927,7 @@ SWIGINTERN PyObject *_wrap_ec_key_write_bio_no_cipher(PyObject *self, PyObject *
   result = (int)ec_key_write_bio_no_cipher(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26854,6 +27055,7 @@ SWIGINTERN PyObject *_wrap_ecdsa_verify(PyObject *self, PyObject *args) {
   result = (int)ecdsa_verify(arg1,arg2,arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -26928,6 +27130,7 @@ SWIGINTERN PyObject *_wrap_ecdsa_verify_asn1(PyObject *self, PyObject *args) {
   result = (int)ecdsa_verify_asn1(arg1,arg2,arg3);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27046,6 +27249,7 @@ SWIGINTERN PyObject *_wrap_ec_key_keylen(PyObject *self, PyObject *args) {
   result = (int)ec_key_keylen(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27076,6 +27280,7 @@ SWIGINTERN PyObject *_wrap_ec_key_type_check(PyObject *self, PyObject *args) {
   result = (int)ec_key_type_check(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27192,6 +27397,7 @@ SWIGINTERN PyObject *_wrap_engine_free(PyObject *self, PyObject *args) {
   result = (int)ENGINE_free(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27222,6 +27428,7 @@ SWIGINTERN PyObject *_wrap_engine_init(PyObject *self, PyObject *args) {
   result = (int)ENGINE_init(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27252,6 +27459,7 @@ SWIGINTERN PyObject *_wrap_engine_finish(PyObject *self, PyObject *args) {
   result = (int)ENGINE_finish(arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27365,6 +27573,7 @@ SWIGINTERN PyObject *_wrap_engine_ctrl_cmd_string(PyObject *self, PyObject *args
   result = (int)ENGINE_ctrl_cmd_string(arg1,(char const *)arg2,(char const *)arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
@@ -27817,6 +28026,7 @@ SWIGINTERN PyObject *_wrap_engine_set_default(PyObject *self, PyObject *args) {
   result = (int)ENGINE_set_default(arg1,arg2);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27913,6 +28123,7 @@ SWIGINTERN PyObject *_wrap_obj_obj2nid(PyObject *self, PyObject *args) {
   result = (int)OBJ_obj2nid((ASN1_OBJECT const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   return resultobj;
@@ -27944,6 +28155,7 @@ SWIGINTERN PyObject *_wrap_obj_ln2nid(PyObject *self, PyObject *args) {
   result = (int)OBJ_ln2nid((char const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
@@ -27977,6 +28189,7 @@ SWIGINTERN PyObject *_wrap_obj_sn2nid(PyObject *self, PyObject *args) {
   result = (int)OBJ_sn2nid((char const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
@@ -28010,6 +28223,7 @@ SWIGINTERN PyObject *_wrap_obj_txt2nid(PyObject *self, PyObject *args) {
   result = (int)OBJ_txt2nid((char const *)arg1);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
@@ -28109,6 +28323,7 @@ SWIGINTERN PyObject *_wrap__obj_obj2txt(PyObject *self, PyObject *args) {
   result = (int)OBJ_obj2txt(arg1,arg2,(ASN1_OBJECT const *)arg3,arg4);
   {
     resultobj=PyInt_FromLong(result);
+    
     if (PyErr_Occurred()) SWIG_fail;
   }
   if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
