@@ -107,6 +107,7 @@ extern int EC_KEY_check_key(const EC_KEY *);
 %constant int NID_ipsec4 = NID_ipsec4;
 
 
+%warnfilter(454) _ec_err;
 %inline %{
 static PyObject *_ec_err;
 
@@ -347,11 +348,23 @@ int ec_key_write_bio_no_cipher(EC_KEY *key, BIO *f, PyObject *pyfunc) {
 
 
 PyObject *ecdsa_sig_get_r(ECDSA_SIG *ecdsa_sig) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     return bn_to_mpi(ecdsa_sig->r);
+#else
+    BIGNUM* pr;
+    ECDSA_SIG_get0(ecdsa_sig, &pr, NULL);
+    return bn_to_mpi(pr);
+#endif
 }
 
 PyObject *ecdsa_sig_get_s(ECDSA_SIG *ecdsa_sig) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     return bn_to_mpi(ecdsa_sig->s);
+#else
+    BIGNUM* ps;
+    ECDSA_SIG_get0(ecdsa_sig, NULL, &ps);
+    return bn_to_mpi(ps);
+#endif
 }
 
 PyObject *ecdsa_sign(EC_KEY *key, PyObject *value) {
@@ -383,26 +396,41 @@ int ecdsa_verify(EC_KEY *key, PyObject *value, PyObject *r, PyObject *s) {
     int vlen, rlen, slen;
     ECDSA_SIG *sig;
     int ret;
+    BIGNUM* pr, *ps;
 
     if ((m2_PyObject_AsReadBufferInt(value, &vbuf, &vlen) == -1)
         || (m2_PyObject_AsReadBufferInt(r, &rbuf, &rlen) == -1)
         || (m2_PyObject_AsReadBufferInt(s, &sbuf, &slen) == -1))
         return -1;
 
+    if (!(pr = BN_mpi2bn((unsigned char *)rbuf, rlen, NULL))) {
+        PyErr_SetString(_ec_err, ERR_reason_error_string(ERR_get_error()));
+        return -1;
+    }
+    if (!(ps = BN_mpi2bn((unsigned char *)sbuf, slen, NULL))) {
+        PyErr_SetString(_ec_err, ERR_reason_error_string(ERR_get_error()));
+        BN_free(pr);
+        return -1;
+    }
+
     if (!(sig = ECDSA_SIG_new())) {
         PyErr_SetString(_ec_err, ERR_reason_error_string(ERR_get_error()));
+        BN_free(pr);
+        BN_free(ps);
         return -1;
     }
-    if (!BN_mpi2bn((unsigned char *)rbuf, rlen, sig->r)) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    sig->r = pr;
+    sig->s = ps;
+#else
+    if (!ECDSA_SIG_set0(sig, pr, ps)) {
         PyErr_SetString(_ec_err, ERR_reason_error_string(ERR_get_error()));
         ECDSA_SIG_free(sig);
+        BN_free(pr);
+        BN_free(ps);
         return -1;
     }
-    if (!BN_mpi2bn((unsigned char *)sbuf, slen, sig->s)) {
-        PyErr_SetString(_ec_err, ERR_reason_error_string(ERR_get_error()));
-        ECDSA_SIG_free(sig);
-        return -1;
-    }
+#endif
     ret = ECDSA_do_verify(vbuf, vlen, sig, key);
     ECDSA_SIG_free(sig);
     if (ret == -1)
