@@ -10,7 +10,7 @@ try:
 except ImportError:
     import unittest
 
-from M2Crypto import BIO, EVP, Rand, SMIME, X509
+from M2Crypto import BIO, EVP, Rand, SMIME, X509, m2
 
 class SMIMETestCase(unittest.TestCase):
     cleartext = b'some text to manipulate'
@@ -173,6 +173,9 @@ class SMIMETestCase(unittest.TestCase):
         with self.assertRaises(SMIME.PKCS7_Error):
             s.decrypt(p7)
 
+    @unittest.skipIf(m2.OPENSSL_VERSION_NUMBER == 0x10100006,
+            "BUG openssl-dev #4628 EVP_f_cipher regression due to "
+            "overlapping regions check")
     def test_signEncryptDecryptVerify(self):
         # sign
         buf = BIO.MemoryBuffer(self.cleartext)
@@ -204,6 +207,7 @@ class SMIMETestCase(unittest.TestCase):
         p7, data = SMIME.smime_load_pkcs7_bio(signedEncrypted)
 
         out = s.decrypt(p7)
+        self.assertEqual(out, self.cleartext)
 
         # verify
         x509 = X509.load_cert('tests/signer.pem')
