@@ -337,7 +337,7 @@ int dsa_verify(DSA *dsa, PyObject *value, PyObject *r, PyObject *s) {
     }
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     sig->r = pr;
-    sig->ps = ps;
+    sig->s = ps;
 #else
     if (!DSA_SIG_set0(sig, pr, ps)) {
         PyErr_SetString(_dsa_err, ERR_reason_error_string(ERR_get_error()));
