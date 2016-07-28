@@ -44,11 +44,14 @@ else:
 def openssl_version():
     '''Return openssl version as a number'''
     try:
-        vstr = subprocess.check_output(['openssl', 'version'])
+        task = subprocess.Popen(['openssl', 'version'], stdout=subprocess.PIPE)
     except OSError as exc:
         print("Error %s" % exc)
         print("Make sure openssl is in the path")
         return -1
+
+    task.wait()
+    vstr = task.communicate()[0]
 
     # See doc/crypto/OPENSSL_VERSION_NUMBER.pod
     ma = re.match('OpenSSL (\d+)\.(\d+)\.(\d+)([a-z]*)', vstr)
