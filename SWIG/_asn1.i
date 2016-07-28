@@ -24,8 +24,6 @@ extern ASN1_OBJECT *ASN1_OBJECT_create( int, unsigned char *, int, const char *,
 extern void ASN1_OBJECT_free( ASN1_OBJECT *);
 %rename(i2d_asn1_object) i2d_ASN1_OBJECT;
 extern int i2d_ASN1_OBJECT( ASN1_OBJECT *, unsigned char **);
-%rename(c2i_asn1_object) c2i_ASN1_OBJECT;
-extern ASN1_OBJECT *c2i_ASN1_OBJECT( ASN1_OBJECT **, CONST098 unsigned char **, long);
 %rename(d2i_asn1_object) d2i_ASN1_OBJECT;
 extern ASN1_OBJECT *d2i_ASN1_OBJECT( ASN1_OBJECT **, CONST098 unsigned char **, long);
 
@@ -103,12 +101,8 @@ extern int ASN1_INTEGER_cmp(ASN1_INTEGER *, ASN1_INTEGER *);
 %constant int ASN1_STRFLGS_ESC_MSB = 4;
 %constant int ASN1_STRFLGS_ESC_QUOTE = 8;
 %constant int ASN1_STRFLGS_UTF8_CONVERT = 0x10;
-%constant int ASN1_STRFLGS_IGNORE_TYPE = 0x20;
-%constant int ASN1_STRFLGS_SHOW_TYPE = 0x40;
-%constant int ASN1_STRFLGS_DUMP_ALL = 0x80;
 %constant int ASN1_STRFLGS_DUMP_UNKNOWN = 0x100;
 %constant int ASN1_STRFLGS_DUMP_DER = 0x200;
-
 %constant int ASN1_STRFLGS_RFC2253 = (ASN1_STRFLGS_ESC_2253 | \
                 ASN1_STRFLGS_ESC_CTRL | \
                 ASN1_STRFLGS_ESC_MSB | \
