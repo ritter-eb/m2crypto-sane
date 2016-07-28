@@ -2,6 +2,7 @@
 /* $Id$ */
 
 %{
+#include <openssl/applink.c>
 #include <openssl/dh.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -96,6 +97,24 @@ static int m2_PyObject_GetBufferInt(PyObject *obj, Py_buffer *view, int flags)
     }
 
     return 0;
+}
+
+static BIGNUM*
+m2_PyObject_AsBIGNUM(PyObject* value, PyObject* _py_exc) 
+{
+    BIGNUM* bn;
+    const void* vbuf;
+    int vlen;
+
+    if (m2_PyObject_AsReadBufferInt(value, &vbuf, &vlen) == -1)
+        return NULL;
+
+    if (!(bn = BN_mpi2bn((unsigned char *)vbuf, vlen, NULL))) {
+        PyErr_SetString(_py_exc, ERR_reason_error_string(ERR_get_error()));
+        return NULL;
+        }
+
+    return bn;
 }
 
 static void m2_PyBuffer_Release(PyObject *obj, Py_buffer *view)
@@ -357,9 +376,14 @@ int passphrase_callback(char *buf, int num, int v, void *arg) {
 %}
 
 %inline %{
+
 void lib_init() {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     SSLeay_add_all_algorithms();
     ERR_load_ERR_strings();
+#elif OPENSSL_VERSION_NUMBER >= 0x10100006L
+    OPENSSL_SetApplink(OPENSSL_Applink);
+#endif
 }
 
 /* Bignum routines that aren't not numerous enough to
