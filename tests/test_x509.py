@@ -557,7 +557,7 @@ class X509TestCase(unittest.TestCase):
 class X509StackTestCase(unittest.TestCase):
     def test_make_stack_from_der(self):
         f = open("tests/der_encoded_seq.b64", 'rb')
-        b64 = f.read(1304)
+        b64 = f.read()
         seq = base64.decodestring(b64)
         stack = X509.new_stack_from_der(seq)
         cert = stack.pop()
@@ -573,7 +573,7 @@ class X509StackTestCase(unittest.TestCase):
 
     def test_make_stack_check_num(self):
         f = open("tests/der_encoded_seq.b64", 'rb')
-        b64 = f.read(1304)
+        b64 = f.read()
         seq = base64.decodestring(b64)
         stack = X509.new_stack_from_der(seq)
         num = len(stack)
