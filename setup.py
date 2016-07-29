@@ -194,7 +194,6 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         # just using self.inplace in finalize_options() above does not work
         # because swig is not rerun if the __m2crypto.so extension exists.
         # Again, hard-coding our extension name and location.
-        print("DEBUG => build_ext invoked !")
         build_ext.build_ext.run(self)
         if self.inplace:
             copy_file(os.path.join(self.build_lib, 'M2Crypto', '_m2crypto.py'),
