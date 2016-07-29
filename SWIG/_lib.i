@@ -2,7 +2,9 @@
 /* $Id$ */
 
 %{
+#if defined(_MSC_VER)
 #include <openssl/applink.c>
+#endif
 #include <openssl/dh.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -381,7 +383,7 @@ void lib_init() {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     SSLeay_add_all_algorithms();
     ERR_load_ERR_strings();
-#elif OPENSSL_VERSION_NUMBER >= 0x10100006L
+#elif OPENSSL_VERSION_NUMBER >= 0x10100006L && defined(_MSC_VER)
     OPENSSL_SetApplink(OPENSSL_Applink);
 #endif
 }
