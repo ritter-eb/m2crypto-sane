@@ -14,13 +14,14 @@
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define RSA_size(r)     (BN_num_bytes((r)->n))
+#else
+%rename(rsa_size) RSA_size;
+extern int RSA_size(const RSA *);
 #endif
 %rename(rsa_new) RSA_new;
 extern RSA *RSA_new(void);
 %rename(rsa_free) RSA_free;
 extern void RSA_free(RSA *);
-%rename(rsa_size) RSA_size;
-extern int RSA_size(const RSA *);
 %rename(rsa_check_key) RSA_check_key;
 extern int RSA_check_key(const RSA *);
 
