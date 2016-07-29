@@ -35,6 +35,7 @@ typedef struct evp_md_ctx_st EVP_MD_CTX;
 %apply Pointer NONNULL { EVP_CIPHER * };
 %apply Pointer NONNULL { RSA * };
 
+%inline %{
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define EVP_MD_CTX_size(ctx)        ((ctx)->digest->md_size)
 #define HMAC_size(ctx)              ((ctx)->md->md_size)
@@ -60,6 +61,7 @@ typedef struct evp_md_ctx_st EVP_MD_CTX;
     ((ctx)->cipher->block_size)
 #define EVP_PKEY_base_id(pkey)      ((pkey)->type)
 #endif
+%}
 
 %rename(md5) EVP_md5;
 extern const EVP_MD *EVP_md5(void);
