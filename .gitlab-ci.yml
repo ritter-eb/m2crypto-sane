@@ -16,13 +16,7 @@ centos6:
     image: centos:6
     when: always
     script:
-        - pushd /tmp && \
-            git clone https://github.com/swig/swig.git && \
-            cd swig && \
-            ./autogen.sh && \
-            ./configure && \
-            ./make install && \
-            popd
+        - bash ./add-swig-to-centos.sh
         - yum upgrade -y
         - yum groupinstall -y "Development tools"
         - yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
