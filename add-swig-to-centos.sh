@@ -5,4 +5,4 @@ cd /tmp && \
     cd swig && \
     ./autogen.sh && \
     ./configure && \
-    make install
+    make  && make install
