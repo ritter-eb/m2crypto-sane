@@ -12,11 +12,15 @@
 %apply Pointer NONNULL { RSA * };
 %apply Pointer NONNULL { PyObject *pyfunc };
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define RSA_size(r)     (BN_num_bytes((r)->n))
-#else
 %rename(rsa_size) RSA_size;
-extern int RSA_size(const RSA *);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+%inline %{
+int RSA_size(const RSA* rsa) {
+    return BN_num_bytes(rsa->n);
+}
+%}
+#else
+extern int RSA_size(const RSA*);
 #endif
 %rename(rsa_new) RSA_new;
 extern RSA *RSA_new(void);
@@ -247,7 +251,9 @@ PyObject *rsa_public_decrypt(RSA *rsa, PyObject *from, int padding) {
     if (m2_PyObject_AsReadBufferInt(from, &fbuf, &flen) == -1)
         return NULL;
 
-    if (!(tbuf = PyMem_Malloc(RSA_size(rsa) - 11))) {
+    /* OpenSSL docs clearly say we only need buffer 'RSA_size()-11', but on
+     * 1.0.1e, causes crash. For now it's harmless to grab an extra 11 bytes */
+    if (!(tbuf = PyMem_Malloc(RSA_size(rsa)))) {
         PyErr_SetString(PyExc_MemoryError, "rsa_public_decrypt");
         return NULL;
     }
