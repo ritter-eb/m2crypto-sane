@@ -93,7 +93,7 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         # openssl is the attribute corresponding to openssl directory prefix
         # command line option
         if os.name == 'nt':
-            if OPENSSL_VERSION_NUMBER < 0x1010000L:
+            if OPENSSL_VERSION_NUMBER < 0x1010000:
                 self.libraries = ['ssleay32', 'libeay32']
                 self.openssl = 'c:\\pkg'
             else:
