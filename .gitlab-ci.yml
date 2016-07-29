@@ -20,8 +20,6 @@ centos6:
         - yum groupinstall -y "Development tools"
         - yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
         - yum install -y python-devel openssl-devel openssl python-setuptools python-twisted python-unittest2
-        - yum install -y git pcre-devel
-        - sh add-swig-to-centos.sh
         - python setup.py clean build test
 
 python27:
