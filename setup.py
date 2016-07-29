@@ -54,7 +54,7 @@ def openssl_version():
     vstr = task.communicate()[0]
 
     # See doc/crypto/OPENSSL_VERSION_NUMBER.pod
-    ma = re.match('OpenSSL (\d+)\.(\d+)\.(\d+)([a-z]*)', vstr)
+    ma = re.match('OpenSSL (\d+)\.(\d+)\.(\d+)([a-z]*)', str(vstr))
     if not ma:
         print("Unrecognized version string: %s" % vstr)
         return -1
