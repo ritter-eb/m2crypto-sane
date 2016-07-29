@@ -160,11 +160,10 @@ class _M2CryptoBuildExt(build_ext.build_ext):
         # this shortly to come up with a better fix.
         if os.name == 'nt':
             self.swig_opts.append('-D_MSC_VER=1500')
-
-        # Swig 3.0.1 does not recognize __inline keyword. The swig developers
-        # recommend we use a nil define to silence the error. I have a patch
-        # for the swig team, but until it's accepted a nil define is harmless.
-        self.swig_opts.append('-D__inline')
+            # Swig 3.0.1 does not recognize __inline keyword. The swig developers
+            # recommend we use a nil define to silence the error. I have a patch
+            # for the swig team, but until it's accepted a nil define is harmless.
+            self.swig_opts.append('-D__inline')
 
         # These two lines are a workaround for
         # http://bugs.python.org/issue2624 , hard-coding that we are only
