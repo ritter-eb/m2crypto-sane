@@ -177,6 +177,10 @@ int bio_seek(BIO *bio, int offset) {
     return (int)BIO_seek(bio, offset);
 }
 
+int bio_tell(BIO* bio) {
+    return BIO_tell(bio);
+}
+
 void bio_set_flags(BIO *bio, int flags) {
     BIO_set_flags(bio, flags);
 }
@@ -240,12 +244,33 @@ int bio_should_write(BIO* a) {
     return BIO_should_write(a);
 }
 
-/* implment custom BIO_s_pyfd */
+/* implement custom BIO_s_pyfd */
 
 #ifdef WIN32
 #  define clear_sys_error()       SetLastError(0)
 #else
 #  define clear_sys_error()       errno=0
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+void BIO_set_data(BIO *a, void *ptr) {
+    a->ptr = ptr;
+}
+void *BIO_get_data(BIO *a) {
+    return a->ptr;
+}
+void BIO_set_init(BIO *a, int init) {
+    a->init = init;
+}
+int BIO_get_init(BIO *a) {
+    return a->init;
+}
+int BIO_get_shutdown(BIO *a) {
+    return a->shutdown;
+}
+void BIO_set_shutdown(BIO *a, int shutdown) {
+    a->shutdown = shutdown;
+}
 #endif
 
 typedef struct pyfd_struct {
@@ -259,7 +284,7 @@ static int pyfd_write(BIO *b, const char *in, int inl) {
     if (BIO_get_fd(b, &fd) == -1)
         return -1;
     clear_sys_error();
-    ret = _write(fd, in, inl);
+    ret = write(fd, in, inl);
     BIO_clear_retry_flags(b);
     if (ret <= 0) {
         if (BIO_fd_should_retry(ret))
@@ -275,7 +300,7 @@ static int pyfd_read(BIO *b, char *out, int outl) {
         return -1;
     if (out != NULL) {
         clear_sys_error();
-        ret = _read(fd, out, outl);
+        ret = read(fd, out, outl);
         BIO_clear_retry_flags(b);
         if (ret <= 0) {
             if (BIO_fd_should_retry(ret))
@@ -311,7 +336,7 @@ static int pyfd_gets(BIO *bp, char *buf, int size) {
 static int pyfd_new(BIO* b) {
     BIO_PYFD_CTX* ctx;
 
-    ctx = OPENSSL_zalloc(sizeof(*ctx));
+    ctx = OPENSSL_malloc(sizeof(*ctx));
     if (ctx == NULL)
         return 0;
 
@@ -335,7 +360,7 @@ static int pyfd_free(BIO* b) {
         return 0;
 
     if (BIO_get_shutdown(b) && BIO_get_init(b))
-        _close(ctx->fd);
+        close(ctx->fd);
 
     BIO_set_data(b, NULL);
     BIO_set_shutdown(b, 0);
@@ -359,11 +384,11 @@ static long pyfd_ctrl(BIO *b, int cmd, long num, void *ptr) {
     case BIO_CTRL_RESET:
         num = 0;
     case BIO_C_FILE_SEEK:
-        ret = (long)_lseek(ctx->fd, num, 0);
+        ret = (long)lseek(ctx->fd, num, 0);
         break;
     case BIO_C_FILE_TELL:
     case BIO_CTRL_INFO:
-        ret = (long)_lseek(ctx->fd, 0, 1);
+        ret = (long)lseek(ctx->fd, 0, 1);
         break;
     case BIO_C_SET_FD:
         pyfd_free(b);
@@ -406,6 +431,7 @@ static long pyfd_ctrl(BIO *b, int cmd, long num, void *ptr) {
 }
 
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 BIO* BIO_new_pyfd(int fd, int close_flag) {
     BIO *ret;
     BIO_METHOD *methods_fdp;
@@ -425,5 +451,31 @@ BIO* BIO_new_pyfd(int fd, int close_flag) {
     BIO_set_fd(ret, fd, close_flag);
     return ret;
     }
+#else
+static BIO_METHOD methods_pyfdp = {
+    35|0x400|0x100,
+    "python file descriptor",
+    pyfd_write,
+    pyfd_read,
+    pyfd_puts,
+    pyfd_gets,
+    pyfd_ctrl,
+    pyfd_new,
+    pyfd_free,
+    NULL
+};
+BIO_METHOD *BIO_s_pyfd(void) {
+    return (&methods_pyfdp);
+}
+
+BIO *BIO_new_pyfd(int fd, int close_flag) {
+    BIO *ret;
+    ret = BIO_new(BIO_s_pyfd());
+    if (ret == NULL)
+        return NULL;
+    BIO_set_fd(ret, fd, close_flag);
+    return ret;
+}
+#endif
 %}
 
