@@ -86,6 +86,15 @@ class FileTestCase(unittest.TestCase):
             f.seek(6)
             self.assertEqual(f.tell(), 6)
 
+    def test_tell_seek(self):
+        with open(self.fname, 'w') as f:
+            f.write('hello world')
+        with openfile(self.fname, 'r') as f:
+            # Seek absolute
+            f.seek(6)
+            self.assertEqual(f.tell(), 6)
+
+
 def suite():
     # Python 2.2 warns that os.tmpnam() is unsafe.
     try:
