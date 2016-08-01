@@ -68,6 +68,23 @@ class FileTestCase(unittest.TestCase):
             data = f.read(len(self.data))
         self.assertEqual(data, self.data)
 
+    def test_readline(self):
+        with open(self.fname, 'w') as f:
+            f.write('hello\nworld\n')
+        with openfile(self.fname, 'r') as f:
+            self.assertTrue(f.readable())
+            self.assertEqual(f.readline(), 'hello')
+            self.assertEqual(f.readline(), 'world')
+        with openfile(self.fname, 'r') as f:
+            self.assertEqual(f.readlines(), ['hello', 'world'])
+
+    def test_tell_seek(self):
+        with open(self.fname, 'w') as f:
+            f.write('hello world')
+        with openfile(self.fname, 'r') as f:
+            # Seek absolute
+            f.seek(6)
+            self.assertEqual(f.tell(), 6)
 
 def suite():
     # Python 2.2 warns that os.tmpnam() is unsafe.
