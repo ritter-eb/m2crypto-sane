@@ -214,7 +214,7 @@ class MemoryBuffer(BIO):
 class File(BIO):
 
     """
-    Object interface to BIO_s_fp.
+    Object interface to BIO_s_pyfd
 
     This class interfaces Python to OpenSSL functions that expect BIO *. For
     general file manipulation in Python, use Python's builtin file object.
@@ -225,7 +225,7 @@ class File(BIO):
         BIO.__init__(self, _pyfree=1)
         self.pyfile = pyfile
         self.close_pyfile = close_pyfile
-        self.bio = m2.bio_new_fd(pyfile.fileno(), m2.bio_noclose)
+        self.bio = m2.bio_new_pyfd(pyfile.fileno(), m2.bio_noclose)
 
     def close(self):
         # type: () -> None
