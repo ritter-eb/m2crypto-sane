@@ -172,7 +172,7 @@ def swig_version(req_ver):
     IND_VER_LINE = 'SWIG Version '
 
     try:
-        pid = subprocess.Popen(['swig', '-version'], shell=True, stdout=subprocess.PIPE)
+        pid = subprocess.Popen(['swig', '-version'], stdout=subprocess.PIPE)
     except OSError:
         # return False
         raise

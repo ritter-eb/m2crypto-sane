@@ -6519,8 +6519,23 @@ int dsa_type_check(DSA *dsa) {
 #include <openssl/ssl.h>
 #include <openssl/tls1.h>
 #include <openssl/x509.h>
+/*
+WSAPoll is a bad replacement for poll().
+See https://daniel.haxx.se/blog/2012/10/10/wsapoll-is-broken/ for
+reasons.
+Also
+http://thread.gmane.org/gmane.comp.web.curl.library/36487/focus=36494
+and
+http://thread.gmane.org/gmane.comp.web.curl.library/36495
+*/
+#ifdef _WIN32
+#include <winsock2.h>
+#include <time.h>
+#include <windows.h>
+#else
 #include <poll.h>
 #include <sys/time.h>
+#endif
 
 
 static PyObject *_ssl_err;
@@ -6543,7 +6558,7 @@ void ssl_ctx_passphrase_callback(SSL_CTX *ctx, PyObject *pyfunc) {
 
 int ssl_ctx_use_x509(SSL_CTX *ctx, X509 *x) {
     int i;
-    
+
     if (!(i = SSL_CTX_use_certificate(ctx, x))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -6554,7 +6569,7 @@ int ssl_ctx_use_x509(SSL_CTX *ctx, X509 *x) {
 
 int ssl_ctx_use_cert(SSL_CTX *ctx, char *file) {
     int i;
-    
+
     if (!(i = SSL_CTX_use_certificate_file(ctx, file, SSL_FILETYPE_PEM))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -6575,7 +6590,7 @@ int ssl_ctx_use_cert_chain(SSL_CTX *ctx, char *file) {
 
 int ssl_ctx_use_privkey(SSL_CTX *ctx, char *file) {
     int i;
-    
+
     if (!(i = SSL_CTX_use_PrivateKey_file(ctx, file, SSL_FILETYPE_PEM))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -6606,7 +6621,7 @@ int ssl_ctx_use_pkey_privkey(SSL_CTX *ctx, EVP_PKEY *pkey) {
 
 int ssl_ctx_check_privkey(SSL_CTX *ctx) {
     int ret;
-    
+
     if (!(ret = SSL_CTX_check_private_key(ctx))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -6721,7 +6736,7 @@ int ssl_set_session_id_context(SSL *ssl, PyObject *sid_ctx) {
 
 int ssl_set_fd(SSL *ssl, int fd) {
     int ret;
-    
+
     if (!(ret = SSL_set_fd(ssl, fd))) {
         PyErr_SetString(_ssl_err, ERR_reason_error_string(ERR_get_error()));
         return -1;
@@ -6753,9 +6768,74 @@ static void ssl_handle_error(int ssl_err, int ret) {
      }
 }
 
+#ifdef _WIN32
+/* Implementation from
+ * http://web.archive.org/web/20130406033313/http://suacommunity.com/dictionary/gettimeofday-entry.php
+ */
+
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
+
+struct timezone {
+	int tz_minuteswest;	/* minutes W of Greenwich */
+	int tz_dsttime;		/* type of dst correction */
+};
+
+int gettimeofday(struct timeval *tv, struct timezone *tz) {
+/* Define a structure to receive the current Windows filetime */
+	FILETIME ft;
+
+/* Initialize the present time to 0 and the timezone to UTC */
+	unsigned __int64 tmpres = 0;
+	static int tzflag = 0;
+
+	if (NULL != tv) {
+		GetSystemTimeAsFileTime(&ft);
+
+/* The GetSystemTimeAsFileTime returns the number of 100 nanosecond
+   intervals since Jan 1, 1601 in a structure. Copy the high bits to
+   the 64 bit tmpres, shift it left by 32 then or in the low 32 bits. */
+		tmpres |= ft.dwHighDateTime;
+		tmpres <<= 32;
+		tmpres |= ft.dwLowDateTime;
+
+/* Convert to microseconds by dividing by 10 */
+		tmpres /= 10;
+
+/* The Unix epoch starts on Jan 1 1970.  Need to subtract the difference
+   in seconds from Jan 1 1601. */
+		tmpres -= DELTA_EPOCH_IN_MICROSECS;
+
+/* Finally change microseconds to seconds and place in the seconds value.
+   The modulus picks up the microseconds. */
+		tv->tv_sec = (long)(tmpres / 1000000UL);
+		tv->tv_usec = (long)(tmpres % 1000000UL);
+	}
+
+	if (NULL != tz) {
+		if (!tzflag) {
+			_tzset();
+			tzflag++;
+		}
+/* Adjust for the timezone west of Greenwich */
+		tz->tz_minuteswest = _timezone / 60;
+		tz->tz_dsttime = _daylight;
+	}
+
+	return 0;
+}
+#endif
+
 static int ssl_sleep_with_timeout(SSL *ssl, const struct timeval *start,
                                   double timeout, int ssl_err) {
-    struct pollfd fd;
+#ifdef _WIN32
+struct WSAPOLLFD fd;
+#else
+struct pollfd fd;
+#endif
     struct timeval tv;
     int ms, tmp;
 
@@ -6801,7 +6881,11 @@ static int ssl_sleep_with_timeout(SSL *ssl, const struct timeval *start,
         return -1;
     }
     Py_BEGIN_ALLOW_THREADS
+    #ifdef _WIN32
+    tmp = WSAPoll(&fd, 1, ms);
+    #else
     tmp = poll(&fd, 1, ms);
+    #endif
     Py_END_ALLOW_THREADS
     switch (tmp) {
     	case 1:
@@ -6975,13 +7059,13 @@ PyObject *ssl_read_nbio(SSL *ssl, int num) {
         PyErr_SetString(PyExc_MemoryError, "ssl_read");
         return NULL;
     }
-    
-    
+
+
     Py_BEGIN_ALLOW_THREADS
     r = SSL_read(ssl, buf, num);
     Py_END_ALLOW_THREADS
-    
-    
+
+
     switch (SSL_get_error(ssl, r)) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
@@ -7016,8 +7100,8 @@ PyObject *ssl_read_nbio(SSL *ssl, int num) {
             break;
     }
     PyMem_Free(buf);
-    
-    
+
+
     return obj;
 }
 
@@ -7062,7 +7146,7 @@ int ssl_write(SSL *ssl, PyObject *blob, double timeout) {
         default:
             ret = -1;
     }
-    
+
     m2_PyBuffer_Release(blob, &buf);
     return ret;
 }
@@ -7076,12 +7160,12 @@ int ssl_write_nbio(SSL *ssl, PyObject *blob) {
         return -1;
     }
 
-    
+
     Py_BEGIN_ALLOW_THREADS
     r = SSL_write(ssl, buf.buf, buf.len);
     Py_END_ALLOW_THREADS
-    
-    
+
+
     switch (SSL_get_error(ssl, r)) {
         case SSL_ERROR_NONE:
         case SSL_ERROR_ZERO_RETURN:
@@ -7106,7 +7190,7 @@ int ssl_write_nbio(SSL *ssl, PyObject *blob) {
         default:
             ret = -1;
     }
-    
+
     m2_PyBuffer_Release(blob, &buf);
     return ret;
 }
@@ -7391,8 +7475,8 @@ x509v3_set_nconf() {
 X509_EXTENSION *
 x509v3_ext_conf(void *conf, X509V3_CTX *ctx, char *name, char *value) {
       X509_EXTENSION * ext = NULL;
-      ext = X509V3_EXT_conf(conf, ctx, name, value); 
-      PyMem_Free(ctx); 
+      ext = X509V3_EXT_conf(conf, ctx, name, value);
+      PyMem_Free(ctx);
       return ext;
 }
 
@@ -7403,7 +7487,7 @@ void x509_extension_free(X509_EXTENSION *ext) {
 
 PyObject *x509_extension_get_name(X509_EXTENSION *ext) {
     PyObject * ext_name;
-    const char * ext_name_str; 
+    const char * ext_name_str;
     ext_name_str = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
     if (!ext_name_str) {
         PyErr_SetString(_x509_err, ERR_reason_error_string(ERR_get_error()));
@@ -7457,13 +7541,13 @@ in openssl-0.9.8 than they are in openssl-0.9.7. This will
 be picked up by the C preprocessor, not the SWIG preprocessor.
 Used in the wrapping of ASN1_seq_unpack and ASN1_seq_pack functions.
 */
-#if OPENSSL_VERSION_NUMBER >= 0x0090800fL 
+#if OPENSSL_VERSION_NUMBER >= 0x0090800fL
 #define D2ITYPE d2i_of_void *
 #define I2DTYPE i2d_of_void *
 #else
 #define D2ITYPE char *(*)()
 #define I2DTYPE int (*)()
-#endif   
+#endif
 
 STACK_OF(X509) *
 make_stack_from_der_sequence(PyObject * pyEncodedString){
@@ -7492,23 +7576,23 @@ make_stack_from_der_sequence(PyObject * pyEncodedString){
         return NULL;
     }
 
-    certs = ASN1_seq_unpack_X509((unsigned char *)encoded_string, encoded_string_len, d2i_X509, X509_free ); 
+    certs = ASN1_seq_unpack_X509((unsigned char *)encoded_string, encoded_string_len, d2i_X509, X509_free );
     if (!certs) {
        PyErr_SetString(_x509_err, ERR_reason_error_string(ERR_get_error()));
        return NULL;
     }
- 
+
     return certs;
 }
 
 PyObject *
 get_der_encoding_stack(STACK_OF(X509) *stack){
     PyObject * encodedString;
-    
+
     unsigned char * encoding;
-    int len; 
-    
-    encoding = ASN1_seq_pack_X509(stack, i2d_X509, NULL, &len); 
+    int len;
+
+    encoding = ASN1_seq_pack_X509(stack, i2d_X509, NULL, &len);
     if (!encoding) {
        PyErr_SetString(_x509_err, ERR_reason_error_string(ERR_get_error()));
        return NULL;
@@ -7521,7 +7605,7 @@ get_der_encoding_stack(STACK_OF(X509) *stack){
 #endif // PY_MAJOR_VERSION >= 3 
 
     OPENSSL_free(encoding);
-    return encodedString; 
+    return encodedString;
 }
 
 
@@ -21839,7 +21923,7 @@ SWIGINTERN PyObject *_wrap_x509_name_entry_set_data(PyObject *self, PyObject *ar
     if (PyString_Check(obj2)) {
       Py_ssize_t len;
       
-      arg3 = (unsigned char *)PyString_AsString(obj2); 
+      arg3 = (unsigned char *)PyString_AsString(obj2);
       len = PyString_Size(obj2);
       
       
@@ -24025,7 +24109,7 @@ SWIGINTERN PyObject *_wrap_x509_name_oneline(PyObject *self, PyObject *args) {
   resultobj = SWIG_FromCharPtr((const char *)result);
   {
     if (result != NULL)
-    OPENSSL_free(result); 
+    OPENSSL_free(result);
   }
   return resultobj;
 fail:
