@@ -6,6 +6,10 @@ M2Crypto
 :Web-Site: https://gitlab.com/m2crypto/m2crypto
 :IRC channel: `#m2crypto`_ on Freenode
 
+.. image:: http://img.shields.io/badge/first--timers--only-friendly-blue.svg?style=flat-square
+    :target: http://www.firsttimersonly.com/
+    :alt: first-timers-only
+
 M2Crypto = Python + OpenSSL + SWIG
 ------------------------------------
 
