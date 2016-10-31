@@ -193,7 +193,7 @@ class ASN1_TIME:  # noqa
         assert m2.asn1_time_type_check(self.asn1_time), \
             "'asn1_time' type error'"
         buf = BIO.MemoryBuffer()
-        m2.asn1_utctime_print(buf.bio_ptr(), self.asn1_utctime)
+        m2.asn1_time_print(buf.bio_ptr(), self.asn1_time)
         return util.py3str(buf.read_all())
 
     def _ptr(self):
