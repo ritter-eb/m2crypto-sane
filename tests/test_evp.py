@@ -301,7 +301,7 @@ class EVPTestCase(unittest.TestCase):
             log.debug('fin_res = %s', fin_res)
             return fin_res == 1
 
-        data = "test message"
+        data = b"test message"
         signature = sign(data)
         res = {"data": data, "sign": signature}
         self.assertTrue(verify(res))  # works fine
