@@ -8,6 +8,7 @@ Copyright (c) 2004-2007 Open Source Applications Foundation
 Author: Heikki Toivonen
 """
 
+import codecs
 import hashlib
 import io
 import logging
@@ -278,12 +279,11 @@ class EVPTestCase(unittest.TestCase):
             SIGN_PRIVATE.sign_init()
             SIGN_PRIVATE.sign_update(data)
             signed_data = SIGN_PRIVATE.sign_final()
-            signed_data_base64 = signed_data.encode('base64')
-            return signed_data_base64
+            return codecs.encode(signed_data, 'base64')
 
         def verify(response):
             log.debug('response = %s', response)
-            signature = response['sign'].decode('base64')
+            signature = codecs.decode(response['sign'], 'base64')
             log.debug('signature = %s', signature)
             data = response['data']
             verify_evp = EVP.PKey()
