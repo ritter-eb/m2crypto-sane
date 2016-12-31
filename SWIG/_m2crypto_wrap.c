@@ -4506,21 +4506,25 @@ void bio_init(PyObject *bio_err) {
 BIO *bio_new_pyfile(PyObject *pyfile, int bio_close) {
     FILE *fp = NULL;
 #if PY_MAJOR_VERSION >= 3
-    if (PyObject_HasAttrString(pyfile, "fileno")) {
-        int fd = (int)PyLong_AsLong(PyObject_CallMethod(pyfile, "fileno", NULL));
-        if (PyObject_HasAttrString(pyfile, "mode")) {
-            char *mode = PyUnicode_AsUTF8AndSize(
-                    PyObject_CallMethod(pyfile, "mode", NULL), NULL);
-            fp = fdopen(fd, mode);
+    int fd;
+
+    if ((fd = PyObject_AsFileDescriptor(pyfile)) == -1) {
+        Py_RETURN_NONE;
+    }
+    if (PyObject_HasAttrString(pyfile, "mode")) {
+        PyObject *mode_obj = PyObject_GetAttrString(pyfile, "mode");
+        if (mode_obj == NULL) {
+            return PyErr_Format(PyExc_ValueError,
+                    "File does have NULL mode attribute!");
         }
         else {
-            return PyErr_Format(PyExc_ValueError,
-                    "File doesn’t have mode attribute!");
+            char *mode = PyUnicode_AsUTF8AndSize(mode_obj, NULL);
+            fp = fdopen(fd, mode);
         }
     }
     else {
         return PyErr_Format(PyExc_ValueError,
-                "File doesn’t have fileno method!");
+                "File doesn’t have mode attribute!");
     }
 
 #else
@@ -4532,8 +4536,8 @@ BIO *bio_new_pyfile(PyObject *pyfile, int bio_close) {
         char *name = "";
 #if PY_MAJOR_VERSION >= 3
         if (PyObject_HasAttrString(pyfile, "name")) {
-            char *name = PyUnicode_AsUTF8AndSize(
-                    PyObject_CallMethod(pyfile, "name", NULL), NULL);
+            name = PyUnicode_AsUTF8AndSize(
+                   PyObject_CallMethod(pyfile, "name", NULL), NULL);
         }
         else {
             return PyErr_Format(PyExc_ValueError,
