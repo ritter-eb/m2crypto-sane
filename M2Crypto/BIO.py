@@ -229,7 +229,11 @@ class File(BIO):
 
     def close(self):
         # type: () -> None
+        log.info('closing %s file', self)
         self.closed = 1
+        log.info('self.closed = %s', self.closed)
+        log.info('self.close_pyfile = %s', self.close_pyfile)
+        log.info('self.pyfile = %s', self.pyfile)
         if self.close_pyfile:
             self.pyfile.close()
 
