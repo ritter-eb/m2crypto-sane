@@ -132,6 +132,8 @@ class _M2CryptoBuildExt(build_ext.build_ext):
 
         self.include_dirs.append(os.path.join(self.openssl, 'include'))
         openssl_library_dir = os.path.join(self.openssl, 'lib')
+        if os.path.exists('/usr/include/x86_64-linux-gnu'):
+            self.include_dirs.append('/usr/include/x86_64-linux-gnu')
 
         if platform.system() == "Linux":
             if _multiarch:  # on Fedora/RHEL it is an empty string
@@ -274,9 +276,9 @@ used to provide SSL for Twisted. Smartcards supported through the Engine
 interface.'''
 
 setuptools.setup(
-    name='M2Crypto',
+    name='M2Crypto-sane',
     version=__get_version(),
-    description='M2Crypto: A Python crypto and SSL toolkit',
+    description='M2Crypto-sane: A [sane] Python crypto and SSL toolkit',
     long_description=long_description_text,
     license='BSD-style license',
     platforms=['any'],

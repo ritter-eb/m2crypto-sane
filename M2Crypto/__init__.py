@@ -19,9 +19,10 @@ Copyright 2008-2011 Heikki Toivonen. All rights reserved.
 """
 # noqa
 from distutils.version import StrictVersion
-__version__ = '0.25.1'
+__version__ = '0.25.2'
 version = __version__  # type: str
 version_info = StrictVersion(__version__).version
+is_sane = True
 
 from M2Crypto import (ASN1, AuthCookie, BIO, BN, DH, DSA, EVP, Engine, Err,
                       PGP, RSA, Rand, SMIME, SSL, X509, m2crypto,
@@ -33,7 +34,8 @@ if m2.OPENSSL_VERSION_NUMBER >= 0x90800F and m2.OPENSSL_NO_EC == 0:
 if m2.OPENSSL_NO_RC4 == 0:
     from M2Crypto import RC4
 # Backwards compatibility.
-urllib2 = m2urllib
+# this is disabled to avoid contaminating urllib2
+# urllib2 = m2urllib
 
 encrypt = 1
 decrypt = 0
